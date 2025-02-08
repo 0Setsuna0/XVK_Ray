@@ -1,0 +1,44 @@
+#pragma once
+
+#include "VkCommon.h"
+
+namespace xvk
+{
+	class XVKWindow;
+
+	class XVKInstance
+
+	{
+	public:
+
+		XVKInstance(const XVKWindow& window, const std::vector<const char*>& validationLayers);
+		~XVKInstance();
+
+		bool CheckValidationLayerSupport(const std::vector<const char*>& validationLayers);
+
+		VkInstance Handle() const { return vk_instance; }
+
+		VkSurfaceKHR GetVulkanSurface() const { return vk_surface; };
+		
+		const std::vector<const char*>& GetValidationLayers() const { return validationLayers; }
+
+		void CreateSurface();
+
+	private:
+
+		void GetVkExtensions();
+		void GetVkLayers();
+
+		VkInstance vk_instance;
+
+		//validation layer settings
+		bool enableValidationLayer;
+		const std::vector<const char*> validationLayers;
+
+		const XVKWindow& xvk_window;
+		VkSurfaceKHR vk_surface{};
+
+		std::vector<VkExtensionProperties> vk_extensions;
+		std::vector<VkLayerProperties> vk_layers;
+	};
+}
