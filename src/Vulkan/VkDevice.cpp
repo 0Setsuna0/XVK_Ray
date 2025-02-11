@@ -7,9 +7,19 @@ namespace xvk
 		const std::vector<const char*>& requiredExtensions)
 		:xvk_instance(instance), vk_surface(instance.GetVulkanSurface())
 	{
+		this->requiredExtensions = requiredExtensions;
 		GetPhysicalDevices();
 		PickPhysicalDevice();
+		CreateLogicalDevice();
+	}
 
+	XVKDevice::~XVKDevice()
+	{
+		vkDestroyDevice(vk_logicalDevice, nullptr);
+	}
+
+	void XVKDevice::CreateLogicalDevice()
+	{
 		queueFamilyIndices = FindQueueFamilies(vk_physicalDevice);
 
 		const std::set<uint32_t> uniqueQueueFamilies =
@@ -24,12 +34,11 @@ namespace xvk
 
 		for (uint32_t queueFamilyIndex : uniqueQueueFamilies)
 		{
-			VkDeviceQueueCreateInfo queueInfo;
+			VkDeviceQueueCreateInfo queueInfo = {};
 			queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueInfo.queueFamilyIndex = queueFamilyIndex;
 			queueInfo.queueCount = 1;
 			queueInfo.pQueuePriorities = &queuePriority;
-
 			queueCreateInfos.push_back(queueInfo);
 		}
 
@@ -40,23 +49,23 @@ namespace xvk
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.queueCreateInfoCount = queueCreateInfos.size();
-
 		createInfo.pEnabledFeatures = &physicalDeviceFeatures;
 
 		createInfo.enabledExtensionCount = requiredExtensions.size();
 		createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
-		createInfo.enabledLayerCount = instance.GetValidationLayers().size();
-		createInfo.ppEnabledLayerNames = instance.GetValidationLayers().data();
-		vkCreateDevice(vk_physicalDevice, &createInfo, nullptr, &vk_logicalDevice);
-		//VULKAN_RUNTIME_CHECK(vkCreateDevice(vk_physicalDevice, &createInfo, nullptr, &vk_logicalDevice), "Fail to create logical device");
-	}
+		if (xvk_instance.enableValidationLayer)
+		{
+			createInfo.enabledLayerCount = xvk_instance.GetValidationLayers().size();
+			createInfo.ppEnabledLayerNames = xvk_instance.GetValidationLayers().data();
+		}
+		else
+		{
+			createInfo.enabledExtensionCount = 0;
+		}
 
-	XVKDevice::~XVKDevice()
-	{
-		//vkDestroyDevice(vk_logicalDevice, nullptr);
+		VULKAN_RUNTIME_CHECK(vkCreateDevice(vk_physicalDevice, &createInfo, nullptr, &vk_logicalDevice), "Fail to create logical device");
 	}
-
 	void XVKDevice::GetPhysicalDevices()
 	{
 		uint32_t physicalDevicesCount = 0;

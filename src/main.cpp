@@ -12,7 +12,8 @@ int main()
 	{
 		std::vector<const char*> testlayer{ "VK_LAYER_KHRONOS_validation" };
 		xvk::XVKInstance instance(window, testlayer);
-		xvk::XVKDevice device(instance, { VK_KHR_SWAPCHAIN_EXTENSION_NAME });
+		std::vector<const char*> testextension{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		xvk::XVKDevice device(instance, testextension);
 	}
 	catch (const std::exception& e)
 	{

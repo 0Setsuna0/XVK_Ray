@@ -10,7 +10,6 @@ namespace xvk
 
 	{
 	public:
-
 		XVKInstance(const XVKWindow& window, const std::vector<const char*>& validationLayers);
 		~XVKInstance();
 
@@ -23,17 +22,20 @@ namespace xvk
 		const std::vector<const char*>& GetValidationLayers() const { return validationLayers; }
 
 		void CreateSurface();
+		void SetupDebugMessenger();
+
+		bool enableValidationLayer;
 
 	private:
-
 		void GetVkExtensions();
 		void GetVkLayers();
 
 		VkInstance vk_instance;
 
 		//validation layer settings
-		bool enableValidationLayer;
+
 		const std::vector<const char*> validationLayers;
+		VkDebugUtilsMessengerEXT debugMessenger;
 
 		const XVKWindow& xvk_window;
 		VkSurfaceKHR vk_surface{};

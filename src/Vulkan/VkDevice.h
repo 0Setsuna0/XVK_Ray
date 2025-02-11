@@ -30,6 +30,8 @@ namespace xvk
 
 		~XVKDevice();
 
+		void CreateLogicalDevice();
+
 		VkPhysicalDevice PhysicalHandle() const { return vk_physicalDevice; }
 		VkDevice Handle() const { return vk_logicalDevice; }
 
@@ -67,5 +69,7 @@ namespace xvk
 		VkQueue vk_graphicsQueue;
 		VkQueue vk_computeQueue;
 		VkQueue vk_presentQueue;
+
+		std::vector<const char*> requiredExtensions;
 	};
 }
