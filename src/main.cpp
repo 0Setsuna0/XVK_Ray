@@ -1,7 +1,8 @@
-﻿#include <Vulkan/VkBuffer.h>
-#include "Vulkan/VkInstance.h"
-#include "Vulkan/VkWindow.h"
-#include "Vulkan/VkDevice.h"
+﻿#include <Vulkan/XVKBuffer.h>
+#include "Vulkan/XVKInstance.h"
+#include "Vulkan/XVKWindow.h"
+#include "Vulkan/XVKDevice.h"
+#include "Vulkan/XVKSwapChain.h"
 int main()
 {
 	VkBuffer buffer;
@@ -14,6 +15,7 @@ int main()
 		xvk::XVKInstance instance(window, testlayer);
 		std::vector<const char*> testextension{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		xvk::XVKDevice device(instance, testextension);
+		xvk::XVKSwapChain swapChain(device, VK_PRESENT_MODE_MAILBOX_KHR);
 	}
 	catch (const std::exception& e)
 	{

@@ -1,4 +1,4 @@
-#include "VkWindow.h"
+#include "XVKWindow.h"
 
 namespace xvk
 {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <functional>
-#include "VkInstance.h"
-#include "VkCommon.h"
+#include "XVKInstance.h"
+#include "XVKCommon.h"
 
 namespace xvk
 {

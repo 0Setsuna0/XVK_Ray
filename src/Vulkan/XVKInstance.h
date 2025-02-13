@@ -1,13 +1,12 @@
 #pragma once
 
-#include "VkCommon.h"
+#include "XVKCommon.h"
 
 namespace xvk
 {
 	class XVKWindow;
 
 	class XVKInstance
-
 	{
 	public:
 		XVKInstance(const XVKWindow& window, const std::vector<const char*>& validationLayers);
@@ -17,6 +16,7 @@ namespace xvk
 
 		VkInstance Handle() const { return vk_instance; }
 
+		const XVKWindow& GetWindow() const { return xvk_window; }
 		VkSurfaceKHR GetVulkanSurface() const { return vk_surface; };
 		
 		const std::vector<const char*>& GetValidationLayers() const { return validationLayers; }

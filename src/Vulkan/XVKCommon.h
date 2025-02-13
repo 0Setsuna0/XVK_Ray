@@ -44,4 +44,13 @@ namespace xvk
 		outvector.resize(count);
 		EnumerateFunc(handle, &count, outvector.data());
 	}
+
+	template<class THandle1, class THandle2, class TValue>
+	inline void GetEnumerateVector(THandle1 handle1, THandle2 handle2, VkResult(*EnumerateFunc)(THandle1, THandle2, uint32_t*, TValue*), std::vector<TValue>& outvector)
+	{
+		uint32_t count = 0;
+		EnumerateFunc(handle1, handle2, &count, nullptr);
+		outvector.resize(count);
+		EnumerateFunc(handle1, handle2, &count, outvector.data());
+	}
 }

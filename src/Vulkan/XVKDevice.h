@@ -1,7 +1,7 @@
 #pragma once
 
-#include "VkCommon.h"
-#include "VkInstance.h"
+#include "XVKCommon.h"
+#include "XVKInstance.h"
 
 namespace xvk
 {
@@ -44,8 +44,10 @@ namespace xvk
 		VkQueue ComputeQueue() const { return vk_computeQueue; }
 		VkQueue PresentQueue() const { return vk_presentQueue; }
 
-		const VkSurfaceKHR& Surface() const { return vk_surface; }
+		const VkSurfaceKHR Surface() const { return vk_surface; }
 		const XVKInstance& Instance() const { return xvk_instance; }
+
+		void WaitIdle() const;
 
 	private:
 		void GetPhysicalDevices();
@@ -62,7 +64,7 @@ namespace xvk
 		VkDevice		 vk_logicalDevice;
 
 		const XVKInstance&	xvk_instance;
-		const VkSurfaceKHR&	vk_surface;
+		const VkSurfaceKHR	vk_surface;
 
 		QueueFamilyIndices queueFamilyIndices;
 

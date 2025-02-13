@@ -1,5 +1,5 @@
-#include "VkInstance.h"
-#include "VkWindow.h"
+#include "XVKInstance.h"
+#include "XVKWindow.h"
 namespace xvk
 {
 	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -124,11 +124,11 @@ namespace xvk
 
 		if (CreateDebugUtilsMessengerEXT(vk_instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to set up debug messenger!");
+			throw std::runtime_error("Failed to set up debug messenger!");
 		}
 		else
 		{
-			std::cout << "succeed to set up debug messenger" << std::endl;
+			std::cout << "Succeed to set up debug messenger" << std::endl;
 		}
 	}
 
@@ -140,7 +140,7 @@ namespace xvk
 		{
 			bool bSupport = false;
 
-			for (auto availableLayer : availableLayers)
+			for (auto& availableLayer : availableLayers)
 			{
 				if (strcmp(availableLayer.layerName, layer) == 0)
 				{

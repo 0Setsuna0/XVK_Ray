@@ -1,4 +1,4 @@
-#include "VkDevice.h"
+#include "XVKDevice.h"
 #include <set>
 
 namespace xvk
@@ -11,11 +11,18 @@ namespace xvk
 		GetPhysicalDevices();
 		PickPhysicalDevice();
 		CreateLogicalDevice();
+		vkGetDeviceQueue(vk_logicalDevice, queueFamilyIndices.graphicsFamily, 0, &vk_graphicsQueue);
+		vkGetDeviceQueue(vk_logicalDevice, queueFamilyIndices.computeFamily, 0, &vk_computeQueue);
+		vkGetDeviceQueue(vk_logicalDevice, queueFamilyIndices.presentFamily, 0, &vk_presentQueue);
 	}
 
 	XVKDevice::~XVKDevice()
 	{
-		vkDestroyDevice(vk_logicalDevice, nullptr);
+		if (vk_logicalDevice != VK_NULL_HANDLE)
+		{
+			vkDestroyDevice(vk_logicalDevice, nullptr);
+			vk_logicalDevice = VK_NULL_HANDLE;
+		}
 	}
 
 	void XVKDevice::CreateLogicalDevice()
@@ -65,6 +72,8 @@ namespace xvk
 		}
 
 		VULKAN_RUNTIME_CHECK(vkCreateDevice(vk_physicalDevice, &createInfo, nullptr, &vk_logicalDevice), "Fail to create logical device");
+	
+		vkGetDeviceQueue(vk_logicalDevice, queueFamilyIndices.graphicsFamily, 0, &vk_graphicsQueue);
 	}
 	void XVKDevice::GetPhysicalDevices()
 	{
@@ -162,5 +171,10 @@ namespace xvk
 
 		return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && indices.IsCompelete()
 			&& extensionSupported;
+	}
+
+	void XVKDevice::WaitIdle() const
+	{
+		vkDeviceWaitIdle(vk_logicalDevice);
 	}
 }
