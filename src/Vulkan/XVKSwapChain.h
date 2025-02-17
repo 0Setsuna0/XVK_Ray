@@ -47,9 +47,6 @@ namespace xvk
 		VkExtent2D vk_swapChainExtent;
 		VkPresentModeKHR vk_presentMode;
 		std::vector<VkImage> vk_swapChainImages;
-		std::vector<VkImageView> vk_swapChainImageViews;
 		std::vector<XVKImageView> xvk_imageViews;
-
-	
 	};
 }

@@ -5,6 +5,8 @@
 #include "Vulkan/XVKSwapChain.h"
 #include "Vulkan/XVKRenderPass.h"
 #include "Vulkan/XVKDescriptorSetLayout.h"
+#include "Vulkan/XVKCommandPool.h"
+#include "Vulkan/XVKCommandBuffers.h"
 
 int main()
 {
@@ -22,6 +24,8 @@ int main()
 		xvk::XVKRenderPass renderPass(device, swapChain.GetImageFormat(), VK_FORMAT_D32_SFLOAT, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_LOAD_OP_CLEAR);
 		xvk::DescriptorBinding binding{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT };
 		xvk::XVKDescriptorSetLayout descriptor(device, {binding});
+		xvk::XVKCommandPool commandPool(device, device.GraphicsQueueIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+		xvk::XVKCommandBuffers commandBuffers(commandPool, swapChain.GetMinImageCount());
 		window.Run();
 	}
 	catch (const std::exception& e)
