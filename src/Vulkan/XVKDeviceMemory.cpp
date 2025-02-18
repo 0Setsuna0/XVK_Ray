@@ -21,6 +21,12 @@ namespace xvk
 		VULKAN_RUNTIME_CHECK(vkAllocateMemory(device.Handle(), &allocInfo, nullptr, &vk_deviceMemory), "allocate memory");
 	}
 
+	XVKDeviceMemory::XVKDeviceMemory(XVKDeviceMemory&& other) noexcept
+		: vk_deviceMemory(other.vk_deviceMemory), xvk_device(other.xvk_device)
+	{
+		other.vk_deviceMemory = VK_NULL_HANDLE;
+	}
+
 	XVKDeviceMemory::~XVKDeviceMemory()
 	{
 		if (vk_deviceMemory != VK_NULL_HANDLE)

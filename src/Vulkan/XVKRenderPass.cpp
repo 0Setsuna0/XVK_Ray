@@ -1,16 +1,18 @@
 #include "XVKRenderPass.h"
-
+#include "XVKSwapChain.h"
 #include "XVKDevice.h"
+#include "XVKDepthBuffer.h"
 #include "array"
 
 namespace xvk
 {
 	XVKRenderPass::XVKRenderPass(const XVKDevice& device,
-		const VkFormat colorBufferFormat,
-		const VkFormat depthBufferFormat,
 		const VkAttachmentLoadOp colorBufferLoadOp,
-		const VkAttachmentLoadOp depthBufferLoadOp)
-		: xvk_device(device), vk_colorFormat(colorBufferFormat), vk_depthFormat(depthBufferFormat)
+		const VkAttachmentLoadOp depthBufferLoadOp,
+		const XVKDepthBuffer& depthBuffer,
+		const XVKSwapChain& swapChain)
+		: xvk_device(device), vk_colorFormat(swapChain.GetImageFormat()), 
+		vk_depthFormat(depthBuffer.GetDepthFormat()), xvk_depthBuffer(depthBuffer), xvk_swapChain(swapChain)
 	{
 		VkAttachmentDescription colorAttachment = {};
 		colorAttachment.format = vk_colorFormat;

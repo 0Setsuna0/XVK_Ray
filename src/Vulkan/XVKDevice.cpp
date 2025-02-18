@@ -72,8 +72,6 @@ namespace xvk
 		}
 
 		VULKAN_RUNTIME_CHECK(vkCreateDevice(vk_physicalDevice, &createInfo, nullptr, &vk_logicalDevice), "Fail to create logical device");
-	
-		vkGetDeviceQueue(vk_logicalDevice, queueFamilyIndices.graphicsFamily, 0, &vk_graphicsQueue);
 	}
 	void XVKDevice::GetPhysicalDevices()
 	{

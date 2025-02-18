@@ -10,9 +10,9 @@ namespace xvk
 
 	struct SwapChainSupportDetails
 	{
-		VkSurfaceCapabilitiesKHR capabilities;//交换链最大最小图像数量，宽度，高度
-		std::vector<VkSurfaceFormatKHR> formats;//像素格式，颜色空间
-		std::vector<VkPresentModeKHR> presetnModes;//可用的呈现模式
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presetnModes;
 	};
 
 	class XVKSwapChain

@@ -6,10 +6,10 @@
 namespace xvk
 {
 	class XVKDevice;
-	class XVKSwapChain;
 	class XVKImageView;
 	class XVKDeviceMemory;
 	class XVKCommandPool;
+	class XVKImage;
 
 	class XVKDepthBuffer
 	{
@@ -18,12 +18,12 @@ namespace xvk
 		~XVKDepthBuffer();
 
 		VkFormat GetDepthFormat() const { return vk_depthFormat; }
-		const VkImageView& GetDepthImageView() const { return *vk_depthImageView; }
+		const XVKImageView& GetDepthImageView() const { return *vk_depthImageView; }
 
 	private:
-		std::unique_ptr<VkImage> vk_depthImage;
-		std::unique_ptr<VkImageView> vk_depthImageView;
-		std::unique_ptr<VkDeviceMemory> vk_depthImageMemory;
+		std::unique_ptr<XVKImage> vk_depthImage;
+		std::unique_ptr<XVKImageView> vk_depthImageView;
+		std::unique_ptr<XVKDeviceMemory> vk_depthImageMemory;
 		const VkFormat vk_depthFormat;
 	};
 }

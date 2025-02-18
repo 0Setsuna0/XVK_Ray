@@ -10,6 +10,7 @@ namespace xvk
 	public:
 		XVKDeviceMemory(const XVKDevice& device, size_t size, uint32_t memoryTypeBits,
 			VkMemoryAllocateFlags allocateFlags, VkMemoryPropertyFlags propertyFlags);
+		XVKDeviceMemory(XVKDeviceMemory&& other) noexcept;
 		~XVKDeviceMemory();
 
 		VkDeviceMemory Handle() const { return vk_deviceMemory; }

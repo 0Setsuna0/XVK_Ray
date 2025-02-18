@@ -7,7 +7,7 @@
 #include "Vulkan/XVKDescriptorSetLayout.h"
 #include "Vulkan/XVKCommandPool.h"
 #include "Vulkan/XVKCommandBuffers.h"
-
+#include "Vulkan/XVKDepthBuffer.h"
 int main()
 {
 	VkBuffer buffer;
@@ -21,11 +21,14 @@ int main()
 		std::vector<const char*> testextension{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		xvk::XVKDevice device(instance, testextension);
 		xvk::XVKSwapChain swapChain(device, VK_PRESENT_MODE_MAILBOX_KHR);
-		xvk::XVKRenderPass renderPass(device, swapChain.GetImageFormat(), VK_FORMAT_D32_SFLOAT, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_LOAD_OP_CLEAR);
-		xvk::DescriptorBinding binding{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT };
-		xvk::XVKDescriptorSetLayout descriptor(device, {binding});
 		xvk::XVKCommandPool commandPool(device, device.GraphicsQueueIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 		xvk::XVKCommandBuffers commandBuffers(commandPool, swapChain.GetMinImageCount());
+		xvk::XVKDepthBuffer depthBuffer(commandPool, swapChain.GetExtent());
+		xvk::XVKRenderPass renderPass(device, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_LOAD_OP_CLEAR,
+			depthBuffer, swapChain);
+		xvk::DescriptorBinding binding{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT };
+		xvk::XVKDescriptorSetLayout descriptor(device, {binding});
+		
 		window.Run();
 	}
 	catch (const std::exception& e)
