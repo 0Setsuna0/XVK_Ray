@@ -8,6 +8,7 @@
 #include "Vulkan/XVKCommandPool.h"
 #include "Vulkan/XVKCommandBuffers.h"
 #include "Vulkan/XVKDepthBuffer.h"
+#include "Vulkan/XVKDescriptorSetManager.h"
 int main()
 {
 	VkBuffer buffer;
@@ -27,8 +28,8 @@ int main()
 		xvk::XVKRenderPass renderPass(device, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_LOAD_OP_CLEAR,
 			depthBuffer, swapChain);
 		xvk::DescriptorBinding binding{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT };
-		xvk::XVKDescriptorSetLayout descriptor(device, {binding});
-		
+		//xvk::XVKDescriptorSetLayout descriptor(device, {binding});
+		xvk::XVKDescriptorSetManager descriptorManager(device, {binding}, 1);
 		window.Run();
 	}
 	catch (const std::exception& e)

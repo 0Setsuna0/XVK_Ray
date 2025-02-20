@@ -8,6 +8,7 @@ namespace xvk
 	class XVKDevice;
 	class XVKSwapChain;
 	class XVKRenderPass;
+	class XVKPipelineLayout;
 
 	class XVKGraphicsPipeline
 	{
@@ -20,5 +21,10 @@ namespace xvk
 
 	private:
 		VkPipeline vk_graphicsPipeline;
+
+		const XVKSwapChain& xvk_swapChain;
+		const bool isWireFrame = false;
+
+		std::unique_ptr<XVKPipelineLayout> xvk_pipelineLayout;
 	};
 }
