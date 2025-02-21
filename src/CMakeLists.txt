@@ -13,8 +13,7 @@ add_executable(ReSTIR_PT
   ${src_files} 
   ${src_files_vulkan} 
   ${src_files_vulkan_raytracing} 
-  ${src_files_utility}
-)
+  ${src_files_utility})
 
 target_link_libraries(ReSTIR_PT PUBLIC Vulkan::Vulkan)
 target_link_libraries(ReSTIR_PT PUBLIC glfw)
