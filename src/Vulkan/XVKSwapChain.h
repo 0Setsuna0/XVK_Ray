@@ -29,7 +29,7 @@ namespace xvk
 		VkPresentModeKHR GetPresentMode() const { return vk_presentMode; }
 		const XVKDevice& GetDevice() const { return xvk_device; }
 		const std::vector<VkImage>& GetImages() const { return vk_swapChainImages; }
-		
+		const std::vector<XVKImageView>& GetImageViews() const { return xvk_imageViews; }
 		
 	private:
 		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice physicalDevice) const;

@@ -32,6 +32,5 @@ if (NOT Vulkan_GLSLANG_VALIDATOR)
 endif()
 
 add_subdirectory(src)
-add_subdirectory(shader)
 add_subdirectory(asset)
 add_subdirectory(3rd)

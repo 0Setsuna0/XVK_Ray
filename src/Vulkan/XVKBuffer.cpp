@@ -49,7 +49,7 @@ namespace xvk
 		return vkGetBufferDeviceAddress(xvk_device.Handle(), &info);
 	}
 
-	void XVKBuffer::CopyFromBuffer(XVKCommandPool commandPool, const XVKBuffer& src, VkDeviceSize size)
+	void XVKBuffer::CopyFromBuffer(XVKCommandPool& commandPool, const XVKBuffer& src, VkDeviceSize size)
 	{
 		XVKTransientCommands::Submit(commandPool, [&](VkCommandBuffer commandBuffer) {
 			VkBufferCopy copyRegion = {};

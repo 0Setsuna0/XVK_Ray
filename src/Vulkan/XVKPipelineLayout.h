@@ -13,6 +13,8 @@ namespace xvk
 		XVKPipelineLayout(const XVKDevice& device, const XVKDescriptorSetLayout& descriptorSetLayout);
 		~XVKPipelineLayout();
 
+		VkPipelineLayout Handle() const { return vk_pipelineLayout; }
+
 	private:
 		VkPipelineLayout vk_pipelineLayout;
 		const XVKDevice& xvk_device;

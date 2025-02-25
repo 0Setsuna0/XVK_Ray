@@ -15,7 +15,7 @@ namespace xvk
 
 		VkBuffer Handle() const { return vk_buffer; };
 		const XVKDevice& GetDevice() const { return xvk_device; };
-		void CopyFromBuffer(XVKCommandPool commandPool, const XVKBuffer& src, VkDeviceSize size);
+		void CopyFromBuffer(XVKCommandPool& commandPool, const XVKBuffer& src, VkDeviceSize size);
 
 		XVKDeviceMemory AllocateMemory(VkMemoryPropertyFlags properties) const;
 		XVKDeviceMemory AllocateMemory(VkMemoryPropertyFlags properties, VkMemoryAllocateFlags allocateFlags) const;

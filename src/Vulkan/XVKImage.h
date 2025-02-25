@@ -6,6 +6,8 @@ namespace xvk
 	class XVKDevice;
 	class XVKCommandPool;
 	class XVKDeviceMemory;
+	class XVKBuffer;
+
 	class XVKImage
 	{
 	public:
@@ -22,7 +24,7 @@ namespace xvk
 		//VkMemoryRequirements GetMemoryRequirements() const;
 
 		void TransitionImageLayout(XVKCommandPool& commandPool, VkImageLayout newLayout);
-
+		void CopyFromBuffer(XVKCommandPool& commandPool, const XVKBuffer& buffer);
 	private:
 		VkImage vk_image;
 		const XVKDevice& xvk_device;

@@ -16,7 +16,7 @@ namespace xvk
 		void Reset();
 		void Wait(const uint64_t timeout) const;
 
-		VkFence Handle() const { return vk_fence; }
+		const VkFence& Handle() const { return vk_fence; }
 		const XVKDevice& GetDevice() const { xvk_device; }
 	private:
 		VkFence vk_fence;

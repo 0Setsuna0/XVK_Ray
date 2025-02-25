@@ -3,6 +3,7 @@
 #include "XVKCommandPool.h"
 #include "XVKDeviceMemory.h"
 #include "XVKTransientCommand.h"
+#include "XVKBuffer.h"
 
 namespace xvk
 {
@@ -109,5 +110,25 @@ namespace xvk
 		});
 
 		vk_imageLayout = newLayout;
+	}
+
+	void XVKImage::CopyFromBuffer(XVKCommandPool& commandPool, const XVKBuffer& buffer)
+	{
+		XVKTransientCommands::Submit(commandPool, [&](VkCommandBuffer commandBuffer)
+		{
+				VkBufferImageCopy region = {};
+				region.bufferOffset = 0;
+				region.bufferRowLength = 0;
+				region.bufferImageHeight = 0;
+				region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				region.imageSubresource.mipLevel = 0;
+				region.imageSubresource.baseArrayLayer = 0;
+				region.imageSubresource.layerCount = 1;
+				region.imageOffset = { 0, 0, 0 };
+				region.imageExtent = { vk_extent.width, vk_extent.height, 1 };
+
+				vkCmdCopyBufferToImage(commandBuffer, buffer.Handle(), vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+					1, &region);
+		});
 	}
 }
