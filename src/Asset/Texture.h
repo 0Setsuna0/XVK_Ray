@@ -3,15 +3,15 @@
 #include "Vulkan/XVKSampler.h"
 #include <memory>
 #include <string>
-#include <stb_image.h>
+#include "ResourceLoader.h"
 
 namespace vkAsset
 {
-	class ATexture
+	class AVulkanTexture
 	{
 	public:
-		ATexture(const std::string& filePath, const xvk::SamplerConfig& samplerConfig);
-		~ATexture() {}
+		AVulkanTexture(const std::string& filePath, const xvk::SamplerConfig& samplerConfig);
+		~AVulkanTexture() {}
 
 		void FreePixelData();
 

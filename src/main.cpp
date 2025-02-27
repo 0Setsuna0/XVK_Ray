@@ -326,7 +326,7 @@ int main()
 		config.MinLod = 0.0f;
 		config.MaxLod = 0.0f;
 
-		vkAsset::ATexture testTexture(ASSET_DIR"texture/TestTexture0.png", config);
+		vkAsset::AVulkanTexture testTexture(ASSET_DIR"texture/TestTexture0.png", config);
 		VkDeviceSize imageSize = testTexture.GetTextureSize();
 		const stbi_uc* pixel = testTexture.GetPixelData();
 
