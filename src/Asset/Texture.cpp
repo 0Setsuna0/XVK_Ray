@@ -4,9 +4,10 @@
 namespace vkAsset
 {
 	AVulkanTexture::AVulkanTexture(const std::string& filePath, const xvk::SamplerConfig& samplerConfig)
-		:xvk_samplerConfig(samplerConfig)
+		:xvk_samplerConfig(samplerConfig), pixel_data(nullptr, stbi_image_free)
 	{
-		pixel_data = stbi_load(filePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+		stbi_uc* temp_pixel_data = stbi_load(filePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+		pixel_data.reset(temp_pixel_data);
 		if (!pixel_data)
 		{
 			RUNTIME_ERROR("Fail to load texture image");
@@ -14,10 +15,5 @@ namespace vkAsset
 
 		textureExtent.width = width;
 		textureExtent.height = height;
-	}
-
-	void AVulkanTexture::FreePixelData()
-	{
-		stbi_image_free(pixel_data);
 	}
 }

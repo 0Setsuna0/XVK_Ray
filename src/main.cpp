@@ -23,6 +23,7 @@
 #include "Vulkan/XVKFence.h"
 #include "Vulkan/XVKImage.h"
 #include "Vulkan/XVKImageView.h"
+#include "Asset/TextureImage.h"
 #include "Asset/Texture.h"
 
 struct Vertex {
@@ -327,25 +328,7 @@ int main()
 		config.MaxLod = 0.0f;
 
 		vkAsset::AVulkanTexture testTexture(ASSET_DIR"texture/TestTexture0.png", config);
-		VkDeviceSize imageSize = testTexture.GetTextureSize();
-		const stbi_uc* pixel = testTexture.GetPixelData();
-
-		xvk::XVKBuffer stagingImageBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-		xvk::XVKDeviceMemory stagingImageMemory = stagingImageBuffer.AllocateMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		void* data3 = stagingImageMemory.MapMemory(0, imageSize);
-		memcpy(data3, pixel, imageSize);
-		stagingImageMemory.UnmapMemory();
-		testTexture.FreePixelData();
-
-		xvk::XVKImage textureImage(device, testTexture.GetExtent(), VK_FORMAT_R8G8B8A8_UNORM,
-			VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-		xvk::XVKDeviceMemory imageMemory = textureImage.AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		textureImage.TransitionImageLayout(commandPool, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		textureImage.CopyFromBuffer(commandPool, stagingImageBuffer);
-		textureImage.TransitionImageLayout(commandPool, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		xvk::XVKSampler textureSampler(device, config);
-		xvk::XVKImageView textureImageView(device, textureImage.Handle(), textureImage.GetFormat(), VK_IMAGE_ASPECT_COLOR_BIT);
+		vkAsset::AVulkanTextureImage textureImage(commandPool, testTexture);
 		//--
 
 		//--descriptor set--
@@ -357,9 +340,9 @@ int main()
 			bufferInfo.range = sizeof(UniformBufferObject);
 
 			VkDescriptorImageInfo imageInfo = {};
-			imageInfo.imageLayout = textureImage.GetImageLayout();
-			imageInfo.imageView = textureImageView.Handle();
-			imageInfo.sampler = textureSampler.Handle();
+			imageInfo.imageLayout = textureImage.GetTextureImage().GetImageLayout();
+			imageInfo.imageView = textureImage.GetTextureImageView().Handle();
+			imageInfo.sampler = textureImage.GetTextureImageSampler().Handle();
 
 			auto write = descriptorManager.GetDescriptorSets().Bind(i, 0, bufferInfo, 1);
 			auto write1 = descriptorManager.GetDescriptorSets().Bind(i, 1, imageInfo, 1);

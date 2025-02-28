@@ -1,25 +1,19 @@
 #pragma once
 #include "Vulkan/XVKCommon.h"
-#include "ResourceLoader.h"
+#include "Utility/ResourceLoader.h"
 #include "Vulkan/XVKDevice.h"
 #include "Vulkan/XVKImage.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
+#include "Vertex.h"
+#include "Material.h"
 namespace vkAsset
 {
 
 	class AglTFModel
 	{
 	public:
-		struct Vertex 
-		{
-			glm::vec3 pos;
-			glm::vec3 normal;
-			glm::vec3 uv;
-			glm::vec3 color;
-		};
-	
 		struct Node;
 
 		struct Primitive
@@ -61,6 +55,7 @@ namespace vkAsset
 		{
 			tinygltf::Image glTFImage;
 			VkDeviceSize bufferSize;
+			unsigned char* bufferData;
 		};
 
 		struct Texture {
@@ -71,10 +66,10 @@ namespace vkAsset
 		VkQueue copyQueue;
 
 		std::vector<AglTFModel::Node*> nodes;
-		std::vector<AglTFModel::Material> materials;
+		std::vector<AMaterial> materials;
 		std::vector<AglTFModel::Image> images;
 		std::vector<AglTFModel::Texture> textures;
-		std::vector<AglTFModel::Vertex> vertexBuffer;
+		std::vector<AVertex> vertexBuffer;
 		std::vector<uint32_t> indexBuffer;
 
 		AglTFModel();
@@ -90,7 +85,7 @@ namespace vkAsset
 		void loadMaterials(tinygltf::Model& input);
 
 		void loadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, AglTFModel::Node* parent,
-			std::vector<uint32_t>& indexBuffer, std::vector<AglTFModel::Vertex>& vertexBuffer);
+			std::vector<uint32_t>& indexBuffer, std::vector<AVertex>& vertexBuffer);
 
 		void loadglTFFile(std::string filePath);
 	};

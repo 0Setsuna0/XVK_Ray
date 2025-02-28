@@ -5,6 +5,26 @@
 
 namespace xvk
 {
+	template <class T>
+	void XVKBufferUtil::CopyFromStagingBuffer(XVKCommandPool& commandPool, XVKBuffer& dstBuffer, const std::vector<T>& data)
+	{
+		const VkDeviceSize bufferSize = data.size() * sizeof(data[0]);
+		const XVKDevice& device = commandPool.GetDevice();
+
+		XVKBuffer stagingBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		XVKDeviceMemory stagingMemory = stagingBuffer.AllocateMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+
+	}
+
+	template <class T>
+	void XVKBufferUtil::CreateBuffer(XVKCommandPool& commandPool, VkBufferUsageFlags usage, const std::vector<T>& data,
+		std::unique_ptr<XVKBuffer>& buffer, std::unique_ptr<XVKDeviceMemory>& memory)
+	{
+
+	}
+
 	XVKBuffer::XVKBuffer(const XVKDevice& device, VkDeviceSize size, VkBufferUsageFlags usage)
 		:xvk_device(device)
 	{

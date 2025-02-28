@@ -7,6 +7,16 @@ namespace xvk
 	class XVKCommandPool;
 	class XVKDevice;
 
+	class XVKBufferUtil
+	{
+		template <class T>
+		static void CopyFromStagingBuffer(XVKCommandPool& commandPool, XVKBuffer& dstBuffer, const std::vector<T>& data);
+
+		template <class T>
+		static void CreateBuffer(XVKCommandPool& commandPool, VkBufferUsageFlags usage, const std::vector<T>& data,
+			std::unique_ptr<XVKBuffer>& buffer, std::unique_ptr<XVKDeviceMemory>& memory);
+	};
+
 	class XVKBuffer
 	{
 	public:

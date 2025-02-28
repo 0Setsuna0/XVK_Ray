@@ -45,6 +45,8 @@ namespace vkAsset
 				buffer = &glTFImage.image[0];
 				bufferSize = glTFImage.image.size();
 			}
+
+			images[i].bufferData = buffer;
 		}
 	}
 
@@ -63,19 +65,19 @@ namespace vkAsset
 		for (int i = 0; i < input.materials.size(); i++)
 		{
 			tinygltf::Material glTFMaterial = input.materials[i];
-			// Get the base color factor
-			if (glTFMaterial.values.find("baseColorFactor") != glTFMaterial.values.end()) {
-				materials[i].baseColorFactor = glm::make_vec4(glTFMaterial.values["baseColorFactor"].ColorFactor().data());
-			}
-			// Get base color texture index
-			if (glTFMaterial.values.find("baseColorTexture") != glTFMaterial.values.end()) {
-				materials[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
-			}
+			//// Get the base color factor
+			//if (glTFMaterial.values.find("baseColorFactor") != glTFMaterial.values.end()) {
+			//	materials[i].baseColorFactor = glm::make_vec4(glTFMaterial.values["baseColorFactor"].ColorFactor().data());
+			//}
+			//// Get base color texture index
+			//if (glTFMaterial.values.find("baseColorTexture") != glTFMaterial.values.end()) {
+			//	materials[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
+			//}
 		}
 	}
 
 	void AglTFModel::loadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, AglTFModel::Node* parent,
-		std::vector<uint32_t>& indexBuffer, std::vector<AglTFModel::Vertex>& vertexBuffer)
+		std::vector<uint32_t>& indexBuffer, std::vector<AVertex>& vertexBuffer)
 	{
 		AglTFModel::Node* node = new AglTFModel::Node{};
 		node->matrix = glm::mat4(1.0f);

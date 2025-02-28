@@ -1,10 +1,12 @@
+#pragma once
+
 #include "XVKCommon.h"
 
 namespace xvk
 {
 	class XVKDevice;
 
-	struct SamplerConfig final
+	struct SamplerConfig
 	{
 		VkFilter MagFilter = VK_FILTER_LINEAR;
 		VkFilter MinFilter = VK_FILTER_LINEAR;
