@@ -23,7 +23,7 @@ namespace vkAsset
 	class AScene
 	{
 	public:
-		AScene(xvk::XVKCommandPool& commandPool, std::vector<AglTFModel>&& models, std::vector<AVulkanTexture>&& textures);
+		AScene(xvk::XVKCommandPool& commandPool, std::vector<AglTFModel>&& models);
 		~AScene();
 
 		const std::vector<AglTFModel>& GetModels() const { return models; }
@@ -35,12 +35,12 @@ namespace vkAsset
 		const xvk::XVKBuffer& GetOffsetsBuffer() const { return *offsetsBuffer; }
 		const std::vector<VkImageView> TextureImageViews() const { return textureImageViewHandles; }
 		const std::vector<VkSampler> TextureSamplers() const { return textureSamplerHandles; }
-		void AddTextureImageFromGLTF(const AglTFModel::Image& image, const AglTFModel::Sampler& sampler);
+		void AddTextureImageFromGLTF(xvk::XVKCommandPool& commandPoolconst, const AglTFModel::Image& image, const AglTFModel::Sampler& sampler);
 	private:
 		
 		
 		const std::vector<AglTFModel> models;
-		const std::vector<AVulkanTexture> textures;
+		std::vector<std::unique_ptr<AVulkanTexture>> textures;
 
 		std::unique_ptr<xvk::XVKBuffer> vertexBuffer;
 		std::unique_ptr<xvk::XVKDeviceMemory> vertexBufferMemory;

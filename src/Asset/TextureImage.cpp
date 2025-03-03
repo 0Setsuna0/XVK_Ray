@@ -12,7 +12,7 @@ namespace vkAsset
 {
 	AVulkanTextureImage::AVulkanTextureImage(xvk::XVKCommandPool& commandPool, const AVulkanTexture& texture)
 	{
-		const VkDeviceSize imageSize = texture.GetExtent().width * texture.GetExtent().height * 4;
+		const VkDeviceSize imageSize = texture.GetTextureSize();
 		const auto& device = commandPool.GetDevice();
 
 		auto stagingBuffer = std::make_unique<xvk::XVKBuffer>(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
@@ -27,6 +27,32 @@ namespace vkAsset
 		imageMemory.reset(new xvk::XVKDeviceMemory(image->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
 		imageView.reset(new xvk::XVKImageView(device, image->Handle(), image->GetFormat(), VK_IMAGE_ASPECT_COLOR_BIT));
 		imageSampler.reset(new xvk::XVKSampler(device, texture.GetSamplerConfig()));
+
+		image->TransitionImageLayout(commandPool, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		image->CopyFromBuffer(commandPool, *stagingBuffer);
+		image->TransitionImageLayout(commandPool, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		stagingBuffer.reset();
+	}
+
+	AVulkanTextureImage::AVulkanTextureImage(xvk::XVKCommandPool& commandPool, unsigned char* data, const xvk::SamplerConfig& samplerConfig,
+		uint32_t width, uint32_t height)
+	{
+		VkDeviceSize imageSize = width * height * 4;
+		const auto& device = commandPool.GetDevice();
+
+		auto stagingBuffer = std::make_unique<xvk::XVKBuffer>(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		auto stagingMemory = stagingBuffer->AllocateMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+		void* dstData = stagingMemory.MapMemory(0, imageSize);
+		memcpy(dstData, data, imageSize);
+		stagingMemory.UnmapMemory();
+
+		image.reset(new xvk::XVKImage(device, VkExtent2D{width, height}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT));
+		imageMemory.reset(new xvk::XVKDeviceMemory(image->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		imageView.reset(new xvk::XVKImageView(device, image->Handle(), image->GetFormat(), VK_IMAGE_ASPECT_COLOR_BIT));
+		imageSampler.reset(new xvk::XVKSampler(device, samplerConfig));
 
 		image->TransitionImageLayout(commandPool, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		image->CopyFromBuffer(commandPool, *stagingBuffer);

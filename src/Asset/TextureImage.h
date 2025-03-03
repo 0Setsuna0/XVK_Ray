@@ -9,6 +9,7 @@ namespace xvk
 	class XVKImage;
 	class XVKImageView;
 	class XVKSampler;
+	struct SamplerConfig;
 }
 
 namespace vkAsset
@@ -20,6 +21,8 @@ namespace vkAsset
 	public:
 
 		AVulkanTextureImage(xvk::XVKCommandPool& commandPool, const AVulkanTexture& texture);
+		AVulkanTextureImage(xvk::XVKCommandPool& commandPool, unsigned char* data, const xvk::SamplerConfig& samplerConfig,
+			uint32_t width, uint32_t height);
 		~AVulkanTextureImage();
 
 		const xvk::XVKImageView& GetTextureImageView() const { return *imageView; }

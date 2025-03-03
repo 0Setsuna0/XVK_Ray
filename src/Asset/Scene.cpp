@@ -13,8 +13,8 @@
 
 namespace vkAsset
 {
-	AScene::AScene(xvk::XVKCommandPool& commandPool, std::vector<AglTFModel>&& models, std::vector<AVulkanTexture>&& textures)
-		:models(std::move(models)), textures(std::move(textures))
+	AScene::AScene(xvk::XVKCommandPool& commandPool, std::vector<AglTFModel>&& models)
+		:models(std::move(models))
 	{
 		std::vector<AVertex> vertices;
 		std::vector<uint32_t> indices;
@@ -45,20 +45,19 @@ namespace vkAsset
 			numTextures += model.textures.size();
 		}
 
+		textures.reserve(numTextures);
 		textureImages.reserve(numTextures);
 		textureImageViewHandles.reserve(numTextures);
 		textureSamplerHandles.reserve(numTextures);
-		numTextures = 0;
+		
 		for (const auto& model : models)
 		{
 			for (int i = 0; i < model.textures.size(); i++)
 			{
 				const auto& image = model.images[model.textures[i].imageIndex];
 				const auto& sampler = model.samplers[model.textures[i].samplerIndex];
-				AddTextureImageFromGLTF(image, sampler);
+				AddTextureImageFromGLTF(commandPool, image, sampler);
 			}
-
-			numTextures += model.textures.size();
 		}
 
 		utility::BufferUtility::CreateBuffer(commandPool, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR 
@@ -93,8 +92,12 @@ namespace vkAsset
 		vertexBufferMemory.reset();
 	}
 
-	void AScene::AddTextureImageFromGLTF(const AglTFModel::Image& image, const AglTFModel::Sampler& sampler)
+	void AScene::AddTextureImageFromGLTF(xvk::XVKCommandPool& commandPool, const AglTFModel::Image& image, const AglTFModel::Sampler& sampler)
 	{
-
+		textures.emplace_back(std::make_unique<AVulkanTexture>(image.bufferData, image.width, image.height, xvk::SamplerConfig()));
+		textureImages.emplace_back(std::make_unique<AVulkanTextureImage>(commandPool, image.bufferData, 
+			xvk::SamplerConfig(), image.width, image.height));
+		textureImageViewHandles.emplace_back(textureImages.end()->get()->GetTextureImageView().Handle());
+		textureSamplerHandles.emplace_back(textureImages.end()->get()->GetTextureImageSampler().Handle());
 	}
 }

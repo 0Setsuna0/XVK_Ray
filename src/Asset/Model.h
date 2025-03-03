@@ -6,9 +6,9 @@
 #include <glm/matrix.hpp>
 #include "Vertex.h"
 #include "Material.h"
+
 namespace vkAsset
 {
-
 	class AglTFModel
 	{
 	public:
@@ -51,14 +51,21 @@ namespace vkAsset
 
 		struct Image
 		{
-			tinygltf::Image glTFImage;
 			VkDeviceSize bufferSize;
+			uint32_t width;
+			uint32_t height;
 			unsigned char* bufferData;
 		};
 
 		struct Sampler
 		{
 			tinygltf::Sampler glTFSampler;
+			VkSamplerAddressMode addressModeU;
+			VkSamplerAddressMode addressModeV;
+			VkSamplerAddressMode addressModeW;
+
+			VkFilter minFilter;
+			VkFilter maxFilter;
 		};
 
 		struct Texture {
@@ -66,13 +73,16 @@ namespace vkAsset
 			int32_t samplerIndex;
 		};
 
+
+
 		std::vector<AglTFModel::Node*> nodes;
-		std::vector<AMaterial> materials;
 		std::vector<AglTFModel::Image> images;
 		std::vector<AglTFModel::Sampler> samplers;
 		std::vector<AglTFModel::Texture> textures;
+
 		std::vector<AVertex> vertexBuffer;
 		std::vector<uint32_t> indexBuffer;
+		std::vector<AMaterial> materials;
 
 		AglTFModel();
 		~AglTFModel();
@@ -85,6 +95,8 @@ namespace vkAsset
 		void loadTextures(tinygltf::Model& input);
 
 		void loadMaterials(tinygltf::Model& input);
+
+		void loadSampler(tinygltf::Model& input);
 
 		void loadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, AglTFModel::Node* parent,
 			std::vector<uint32_t>& indexBuffer, std::vector<AVertex>& vertexBuffer);

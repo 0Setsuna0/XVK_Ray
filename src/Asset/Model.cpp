@@ -22,7 +22,8 @@ namespace vkAsset
 		for (int i = 0; i < input.images.size(); i++)
 		{
 			tinygltf::Image& glTFImage = input.images[i];
-			images[i].glTFImage = glTFImage;
+			images[i].width = glTFImage.width;
+			images[i].height = glTFImage.height;
 
 			unsigned char* buffer = nullptr;
 			VkDeviceSize bufferSize = 0;
@@ -57,6 +58,15 @@ namespace vkAsset
 		{
 			textures[i].imageIndex = input.textures[i].source;
 			textures[i].samplerIndex = input.textures[i].sampler;
+		}
+	}
+
+	void AglTFModel::loadSampler(tinygltf::Model& input)
+	{
+		samplers.resize(input.samplers.size());
+		for (int i = 0; i < input.samplers.size(); i++)
+		{
+			
 		}
 	}
 
