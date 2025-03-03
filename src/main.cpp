@@ -25,6 +25,8 @@
 #include "Vulkan/XVKImageView.h"
 #include "Asset/TextureImage.h"
 #include "Asset/Texture.h"
+#include "Vulkan/XVKDeviceMemory.h"
+#include "Utility/BufferUtil.h"
 
 struct Vertex {
 	glm::vec3 pos;
@@ -265,18 +267,15 @@ int main()
 		//--vertex end--
 
 		//--index buffer--
-		VkDeviceSize indexBufferSize = sizeof(indices[0]) * indices.size();
-		xvk::XVKBuffer stagingBuffer1(device, indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-		xvk::XVKDeviceMemory stagingMemory1 = stagingBuffer1.AllocateMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		//VkDeviceSize indexBufferSize = sizeof(indices[0]) * indices.size();
+		//xvk::XVKBuffer indexBuffer(device, indexBufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+		//xvk::XVKDeviceMemory indexBufferMemory = indexBuffer.AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		//utility::BufferUtility::CopyFromBuffer(commandPool, indexBuffer, indices);
 
-		void* data1 = stagingMemory1.MapMemory(0, indexBufferSize);
-		memcpy(data1, indices.data(), indexBufferSize);
-		stagingMemory1.UnmapMemory();
+		std::unique_ptr<xvk::XVKBuffer> indexBuffer;
+		std::unique_ptr<xvk::XVKDeviceMemory> indexBufferMemory;
+		utility::BufferUtility::CreateBuffer(commandPool, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indices, indexBuffer, indexBufferMemory);
 
-		xvk::XVKBuffer indexBuffer(device, indexBufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-		xvk::XVKDeviceMemory indexBufferMemory = indexBuffer.AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		indexBuffer.CopyFromBuffer(commandPool, stagingBuffer1, indexBufferSize);
 		//--index end--
 
 		//--uniform buffer--
@@ -404,7 +403,7 @@ int main()
 			VkBuffer vertexBuffers[] = { vertexBuffer.Handle() };
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.Handle(), 0, VK_INDEX_TYPE_UINT16);
+			vkCmdBindIndexBuffer(commandBuffer, indexBuffer->Handle(), 0, VK_INDEX_TYPE_UINT16);
 
 			VkViewport viewport{};
 			viewport.x = 0.0f;

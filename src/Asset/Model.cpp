@@ -56,6 +56,7 @@ namespace vkAsset
 		for (int i = 0; i < input.textures.size(); i++)
 		{
 			textures[i].imageIndex = input.textures[i].source;
+			textures[i].samplerIndex = input.textures[i].sampler;
 		}
 	}
 

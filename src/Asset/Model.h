@@ -1,8 +1,6 @@
 #pragma once
 #include "Vulkan/XVKCommon.h"
 #include "Utility/ResourceLoader.h"
-#include "Vulkan/XVKDevice.h"
-#include "Vulkan/XVKImage.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
@@ -58,16 +56,20 @@ namespace vkAsset
 			unsigned char* bufferData;
 		};
 
-		struct Texture {
-			int32_t imageIndex;
+		struct Sampler
+		{
+			tinygltf::Sampler glTFSampler;
 		};
 
-		xvk::XVKDevice* xvk_device;
-		VkQueue copyQueue;
+		struct Texture {
+			int32_t imageIndex;
+			int32_t samplerIndex;
+		};
 
 		std::vector<AglTFModel::Node*> nodes;
 		std::vector<AMaterial> materials;
 		std::vector<AglTFModel::Image> images;
+		std::vector<AglTFModel::Sampler> samplers;
 		std::vector<AglTFModel::Texture> textures;
 		std::vector<AVertex> vertexBuffer;
 		std::vector<uint32_t> indexBuffer;

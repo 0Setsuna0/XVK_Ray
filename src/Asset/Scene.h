@@ -2,6 +2,7 @@
 
 #include "Vulkan/XVKCommon.h"
 #include <memory>
+#include "Model.h"
 
 namespace xvk
 {
@@ -22,7 +23,6 @@ namespace vkAsset
 	class AScene
 	{
 	public:
-
 		AScene(xvk::XVKCommandPool& commandPool, std::vector<AglTFModel>&& models, std::vector<AVulkanTexture>&& textures);
 		~AScene();
 
@@ -35,7 +35,10 @@ namespace vkAsset
 		const xvk::XVKBuffer& GetOffsetsBuffer() const { return *offsetsBuffer; }
 		const std::vector<VkImageView> TextureImageViews() const { return textureImageViewHandles; }
 		const std::vector<VkSampler> TextureSamplers() const { return textureSamplerHandles; }
+		void AddTextureImageFromGLTF(const AglTFModel::Image& image, const AglTFModel::Sampler& sampler);
 	private:
+		
+		
 		const std::vector<AglTFModel> models;
 		const std::vector<AVulkanTexture> textures;
 
