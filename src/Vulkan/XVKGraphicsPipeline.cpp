@@ -3,6 +3,7 @@
 #include "XVKSwapChain.h"
 #include "XVKRenderPass.h"
 #include "XVKPipelineLayout.h"
+#include "XVKDescriptorSetManager.h"
 #include "Asset/Scene.h"
 #include "Asset/UniformBuffer.h"
 #include "Asset/Vertex.h"
@@ -16,7 +17,7 @@ namespace xvk
 		const vkAsset::AScene& scene)
 		:xvk_swapChain(swapChain)
 	{
-		const auto& device = swapChain.GetDevice();
+		const auto& xvk_device = swapChain.GetDevice();
 		const auto bindingDescription = vkAsset::AVertex::getBindingDescription();
 		const auto attributeDescription = vkAsset::AVertex::getAttributeDescriptions();
 		
