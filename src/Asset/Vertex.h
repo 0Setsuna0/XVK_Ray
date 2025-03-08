@@ -11,7 +11,7 @@ namespace vkAsset
 	struct AVertex
 	{
 		glm::vec3 pos;
-		glm::vec3 color;
+		glm::vec3 normal;
 		glm::vec2 texCoord;
 		int32_t materialIndex;
 
@@ -38,7 +38,7 @@ namespace vkAsset
 			attributeDescriptions[1].binding = 0;
 			attributeDescriptions[1].location = 1;
 			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(AVertex, color);
+			attributeDescriptions[1].offset = offsetof(AVertex, normal);
 
 			attributeDescriptions[2].binding = 0;
 			attributeDescriptions[2].location = 2;
