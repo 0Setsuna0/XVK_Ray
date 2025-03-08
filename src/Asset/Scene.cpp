@@ -55,7 +55,7 @@ namespace vkAsset
 			for (int i = 0; i < model.textures.size(); i++)
 			{
 				const auto& image = model.images[model.textures[i].imageIndex];
-				const auto& sampler = model.textureSamplers[model.textures[i].samplerIndex];
+				const auto& sampler = model.samplers[model.textures[i].samplerIndex];
 				AddTextureImageFromGLTF(commandPool, image, sampler);
 			}
 		}
@@ -94,7 +94,6 @@ namespace vkAsset
 
 	void AScene::AddTextureImageFromGLTF(xvk::XVKCommandPool& commandPool, const AglTFModel::Image& image, const AglTFModel::Sampler& sampler)
 	{
-		//todo: add glTFModel sampler support
 		textures.emplace_back(std::make_unique<AVulkanTexture>(image.bufferData, image.width, image.height, xvk::SamplerConfig()));
 		textureImages.emplace_back(std::make_unique<AVulkanTextureImage>(commandPool, image.bufferData, 
 			xvk::SamplerConfig(), image.width, image.height));

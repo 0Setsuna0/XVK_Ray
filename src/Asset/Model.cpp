@@ -63,10 +63,11 @@ namespace vkAsset
 
 	void AglTFModel::loadSampler(tinygltf::Model& input)
 	{
-		textureSamplers.resize(input.samplers.size());
-		//for (int i = 0; i < input.samplers.size(); i++)
-		//{
-		//}
+		samplers.resize(input.samplers.size());
+		for (int i = 0; i < input.samplers.size(); i++)
+		{
+			
+		}
 	}
 
 	void AglTFModel::loadMaterials(tinygltf::Model& input)

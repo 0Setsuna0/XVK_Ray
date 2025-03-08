@@ -59,6 +59,7 @@ namespace vkAsset
 
 		struct Sampler
 		{
+			tinygltf::Sampler glTFSampler;
 			VkSamplerAddressMode addressModeU;
 			VkSamplerAddressMode addressModeV;
 			VkSamplerAddressMode addressModeW;
@@ -76,7 +77,7 @@ namespace vkAsset
 
 		std::vector<AglTFModel::Node*> nodes;
 		std::vector<AglTFModel::Image> images;
-		std::vector<AglTFModel::Sampler> textureSamplers;
+		std::vector<AglTFModel::Sampler> samplers;
 		std::vector<AglTFModel::Texture> textures;
 
 		std::vector<AVertex> vertexBuffer;
