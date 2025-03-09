@@ -70,7 +70,7 @@ namespace xvk
 		return descriptorWrite;
 	}
 
-	void XVKDescriptorSets::UpdateDescriptors(uint32_t index, const std::vector<VkWriteDescriptorSet>& descriptorWrites)
+	void XVKDescriptorSets::UpdateDescriptors(const std::vector<VkWriteDescriptorSet>& descriptorWrites)
 	{
 		vkUpdateDescriptorSets(xvk_descriptorPool.GetDevice().Handle(),
 			static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);

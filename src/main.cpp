@@ -347,7 +347,7 @@ int main()
 			auto write1 = descriptorManager.GetDescriptorSets().Bind(i, 1, imageInfo, 1);
 
 			std::vector<VkWriteDescriptorSet> writes{ write, write1 };
-			vkUpdateDescriptorSets(device.Handle(), writes.size(), writes.data(), 0, nullptr);
+			descriptorManager.GetDescriptorSets().UpdateDescriptors(writes);
 		}
 		//--
 		

@@ -12,6 +12,8 @@ namespace xvk
 		uint32_t descriptorCount;
 		VkDescriptorType descriptorType;
 		VkShaderStageFlags stageFlags;
+		DescriptorBinding(uint32_t inbingding, uint32_t indescriptorCount, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags)
+			:binding(inbingding), descriptorCount(indescriptorCount), descriptorType(descriptorType), stageFlags(stageFlags) {}
 	};
 
 	class XVKDescriptorSetLayout

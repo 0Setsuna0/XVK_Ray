@@ -33,8 +33,8 @@ namespace vkAsset
 		const xvk::XVKBuffer& GetMaterialBuffer() const { return *materialBuffer; }
 		const xvk::XVKBuffer& GetAABBBuffer() const { return *aabbBuffer; }
 		const xvk::XVKBuffer& GetOffsetsBuffer() const { return *offsetsBuffer; }
-		const std::vector<VkImageView> TextureImageViews() const { return textureImageViewHandles; }
-		const std::vector<VkSampler> TextureSamplers() const { return textureSamplerHandles; }
+		const std::vector<VkImageView> GetTextureImageViews() const { return textureImageViewHandles; }
+		const std::vector<VkSampler> GetTextureSamplers() const { return textureSamplerHandles; }
 		void AddTextureImageFromGLTF(xvk::XVKCommandPool& commandPoolconst, const AglTFModel::Image& image, const AglTFModel::Sampler& sampler);
 	private:
 		
