@@ -31,6 +31,8 @@ namespace xvk
 		VkPipeline Handle() const { return vk_graphicsPipeline; }
 	
 		VkDescriptorSet GetDescriptorSet(size_t index) const;
+		const XVKPipelineLayout& GetPipelineLayout()const { return *xvk_pipelineLayout; }
+		const XVKRenderPass& GetRenderPass()const { return *xvk_renderPass; }
 
 	private:
 		VkPipeline vk_graphicsPipeline;

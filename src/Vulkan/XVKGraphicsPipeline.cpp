@@ -202,4 +202,7 @@ namespace xvk
 		xvk_pipelineLayout.reset();
 		xvk_descriptorSetManager.reset();
 	}
+
+	VkDescriptorSet XVKGraphicsPipeline::GetDescriptorSet(size_t index) const 
+	{ return xvk_descriptorSetManager->GetDescriptorSets().Handle(index); }
 }

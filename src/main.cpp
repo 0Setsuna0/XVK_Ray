@@ -117,7 +117,7 @@ int main()
 		frameBuffers.reserve(swapChain.GetMinImageCount());
 		for (int i = 0; i < swapChain.GetMinImageCount(); i++)
 		{
-			frameBuffers.emplace_back(swapChain.GetImageViews()[i], renderPass);
+			frameBuffers.emplace_back(*swapChain.GetImageViews()[i], renderPass);
 		}
 		VkPipeline graphicsPipeline;
 

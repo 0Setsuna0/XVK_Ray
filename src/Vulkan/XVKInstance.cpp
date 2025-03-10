@@ -114,6 +114,7 @@ namespace xvk
 			vkDestroySurfaceKHR(vk_instance, vk_surface, nullptr);
 			vkDestroyInstance(vk_instance, nullptr);
 			vk_instance = nullptr;
+			vk_surface = nullptr;
 		}
 	}
 

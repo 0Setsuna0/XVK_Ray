@@ -63,7 +63,8 @@ namespace xvk
 
 		for (const auto& image : vk_swapChainImages)
 		{
-			xvk_imageViews.emplace_back(xvk_device, image, vk_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+			xvk_imageViews.emplace_back(std::make_unique<XVKImageView>(xvk_device, image, 
+				vk_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT));
 		}
 	}
 
