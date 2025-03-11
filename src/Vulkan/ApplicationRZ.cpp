@@ -20,7 +20,7 @@
 #include "Asset/Scene.h"
 namespace xvk
 {
-	ApplicationRZ::ApplicationRZ(const WindowState& windowState, VkPresentModeKHR presentMode,
+	Application::Application(const WindowState& windowState, VkPresentModeKHR presentMode,
 		bool enableValidationLayer)
 		:m_presentMode(presentMode)
 	{
@@ -35,7 +35,7 @@ namespace xvk
 		CreateSwapChain();
 	}
 
-	ApplicationRZ::~ApplicationRZ()
+	Application::~Application()
 	{
 		DeleteSwapChain();
 		m_commandPool.reset();
@@ -44,20 +44,36 @@ namespace xvk
 		m_window.reset();
 	}
 
+	//handles
+	const std::vector<VkExtensionProperties>& Application::GetExtensions() const
+	{
+		return m_instance->GetExtensions();
+	}
+
+	const std::vector<VkLayerProperties>& Application::GetLayers() const
+	{
+		return m_instance->GetLayers();
+	}
+
+	VkPhysicalDevice Application::GetPhysicalDevice() const
+	{
+		return m_device->PhysicalHandle();
+	}
+
 	//----init----
-	void ApplicationRZ::SetDevice(const std::vector<const char*>& requiredExtensions)
+	void Application::SetDevice(const std::vector<const char*>& requiredExtensions)
 	{
 		m_device.reset(new XVKDevice(*m_instance, requiredExtensions));
 	}
 
-	void ApplicationRZ::SetCommandPool()
+	void Application::SetCommandPool()
 	{
 		m_commandPool.reset(new XVKCommandPool(*m_device, m_device->GraphicsQueueIndex(),
 			VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT));
 	}
 	
 	//----runtime----
-	void ApplicationRZ::CreateSwapChain()
+	void Application::CreateSwapChain()
 	{
 		m_swapChain.reset(new XVKSwapChain(*m_device, m_presentMode));
 		m_depthBuffer.reset(new XVKDepthBuffer(*m_commandPool, m_swapChain->GetExtent()));
@@ -81,7 +97,7 @@ namespace xvk
 		m_commandBuffers.reset(new XVKCommandBuffers(*m_commandPool, m_swapChain->GetImageViews().size()));
 	}
 
-	void ApplicationRZ::DeleteSwapChain()
+	void Application::DeleteSwapChain()
 	{
 		m_commandBuffers.reset();
 		m_frameBuffers.clear();
@@ -94,18 +110,126 @@ namespace xvk
 		m_swapChain.reset();
 	}
 
-	void ApplicationRZ::DrawFrame()
+	void Application::UpdateUniformBuffer()
 	{
-	
+		m_uniformBuffers[currentFrame].SetValue(GetUniformBufferObject(m_swapChain->GetExtent()));
 	}
 
-	void ApplicationRZ::Render()
+	vkAsset::UniformBufferObject Application::GetUniformBufferObject(VkExtent2D extent) const
 	{
-
+		return {};
 	}
 
-	void ApplicationRZ::Run()
+	void Application::DrawFrame()
 	{
+		//synchronization
+		auto& inFlightFence = m_inFlightFences[currentFrame];
+		const VkSemaphore imageAvailableSemaphore = m_imageAvailableSemaphores[currentFrame].Handle();
+		const VkSemaphore renderFinishedSemaphore = m_renderFinishedSemaphores[currentFrame].Handle();
 
+		inFlightFence.Wait(std::numeric_limits<uint64_t>::max());
+
+		uint32_t imageIndex;
+		VkResult result = vkAcquireNextImageKHR(m_device->Handle(), m_swapChain->Handle(),
+			std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		if(result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
+			m_device->WaitIdle();
+			DeleteSwapChain();
+			CreateSwapChain();
+			return;
+		}
+		else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		{
+			RUNTIME_ERROR("failed to acquire swap chain image!");
+		}
+
+		const auto commandBuffer = m_commandBuffers->Begin(currentFrame);
+		Render(commandBuffer, currentFrame, imageIndex);
+		m_commandBuffers->End(currentFrame);
+
+		UpdateUniformBuffer();
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkCommandBuffer commandBuffers[] = { commandBuffer };
+		VkSemaphore waitSemaphores[] = { imageAvailableSemaphore};
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+		VkSwapchainKHR swapChains[] = { m_swapChain->Handle() };
+		VkPresentInfoKHR presentInfo = {};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pResults = nullptr; // Optional
+
+		result = vkQueuePresentKHR(m_device->PresentQueue(), &presentInfo);
+		if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+		{
+			m_device->WaitIdle();
+			DeleteSwapChain();
+			CreateSwapChain();
+			return;
+		}
+		else if(result != VK_SUCCESS)
+		{
+			RUNTIME_ERROR("failed to present swap chain image!");
+		}
+
+		currentFrame = (currentFrame + 1) % m_swapChain->GetImageViews().size();
+	}
+
+	void Application::Render(VkCommandBuffer commandBuffer, const size_t currentFrame, const uint32_t imageIndex)
+	{
+		std::array<VkClearValue, 2> clearValues = {};
+		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+		clearValues[1].depthStencil = { 1.0f, 0 };
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_graphicsPipeline->GetRenderPass().Handle();
+		renderPassInfo.framebuffer = m_frameBuffers[imageIndex].Handle();
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = m_swapChain->GetExtent();
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues = clearValues.data();
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+			VkDescriptorSet descriptorSets[] = { m_graphicsPipeline->GetDescriptorSet(currentFrame) };
+			VkBuffer vertexBuffers[] = { m_scene->GetVertexBuffer().Handle() };
+			VkBuffer indexBuffers[] = { m_scene->GetIndexBuffer().Handle() };
+			VkDeviceSize offsets[] = { 0 };
+
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline->Handle());
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline->GetPipelineLayout().Handle(),
+				0, 1, descriptorSets, 0, nullptr);
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+			vkCmdBindIndexBuffer(commandBuffer, m_scene->GetIndexBuffer().Handle(), 0, VK_INDEX_TYPE_UINT32);
+		
+			uint32_t vertexOffset = 0;
+			uint32_t indexOffset = 0;
+			for(const auto& model : m_scene->GetModels())
+			{
+				vkCmdDrawIndexed(commandBuffer, model.NumIndices(), 1, indexOffset, vertexOffset, 0);
+				indexOffset += model.NumIndices();
+				vertexOffset += model.NumVertices();
+			}
+		vkCmdEndRenderPass(commandBuffer);
+	}
+
+	void Application::Run()
+	{
+		currentFrame = 0;
+		m_window->DrawFrame = [this]() { DrawFrame(); };
+		m_window->OnKeyPressed = [this](const int key, const int scancode, const int action, const int mods) { OnKey(key, scancode, action, mods); };
+		m_window->OnCursorPos = [this](const double xpos, const double ypos) { OnCursorPosition(xpos, ypos); };
+		m_window->OnMouseButtonClicked = [this](const int button, const int action, const int mods) { OnMouseButton(button, action, mods); };
+		m_window->OnScroll = [this](const double xoffset, const double yoffset) { OnScroll(xoffset, yoffset); };
+		m_window->Run();
+		m_device->WaitIdle();
 	}
 }

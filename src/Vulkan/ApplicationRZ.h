@@ -25,22 +25,23 @@ namespace xvk
 	class XVKSemaphore;
 	class XVKFence;
 
-	class ApplicationRZ
+	class Application
 	{
 	public:
-
-		ApplicationRZ(const WindowState& windowState, VkPresentModeKHR presentMode,
+		Application(const WindowState& windowState, VkPresentModeKHR presentMode,
 			bool enableValidationLayer);
-
-		~ApplicationRZ();
-
+		virtual ~Application();
+		
 		const std::vector<VkExtensionProperties>& GetExtensions() const;
 		const std::vector<VkLayerProperties>& GetLayers() const;
-		const std::vector<VkPhysicalDevice>& GetPhysicalDevice() const;
+		VkPhysicalDevice GetPhysicalDevice() const;
 
 		const XVKSwapChain& GetSwapChain() const { return *m_swapChain; }
 		const XVKWindow& const_GetWindow() const { return *m_window; }
 		const XVKDevice& GetDevice() const { return *m_device; }
+		
+		void Run();
+	protected:
 		const XVKDepthBuffer& GetDepthBuffer() const { return *m_depthBuffer; }
 		const std::vector<vkAsset::AUniformBuffer>& GetUniformBuffers() const { return m_uniformBuffers; }
 		const XVKGraphicsPipeline& GetGraphicsPipeline() const { return *m_graphicsPipeline; }
@@ -48,8 +49,6 @@ namespace xvk
 
 		XVKWindow& GetWindow() { return *m_window; }
 		XVKCommandPool& GetCommandPool() { return *m_commandPool; }
-
-		void Run();
 
 		virtual void SetDevice(const std::vector<const char*>& requiredExtensions);
 		virtual void SetCommandPool();
@@ -59,16 +58,20 @@ namespace xvk
 		virtual void CreateSwapChain();
 		virtual void DeleteSwapChain();
 		virtual void DrawFrame();
-		virtual void Render();
-
+		virtual void Render(VkCommandBuffer commandBuffer, const size_t currentFrame, const uint32_t imageIndex);
+		
 		virtual void OnKey(int key, int scancode, int action, int mods) { }
 		virtual void OnCursorPosition(double xpos, double ypos) { }
 		virtual void OnMouseButton(int button, int action, int mods) { }
 		virtual void OnScroll(double xoffset, double yoffset) { }
 
+		virtual vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) const;
+		void UpdateUniformBuffer();
+		std::unique_ptr<vkAsset::AScene> m_scene;
+
 	private:
 		const VkPresentModeKHR m_presentMode;
-		std::unique_ptr<vkAsset::AScene> m_scene;
+
 		std::unique_ptr<XVKWindow> m_window;
 		std::unique_ptr<XVKInstance> m_instance;
 		std::unique_ptr<XVKDevice> m_device;

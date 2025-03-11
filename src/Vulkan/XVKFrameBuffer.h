@@ -1,3 +1,5 @@
+#pragma once
+
 #include "XVKCommon.h"
 
 namespace xvk

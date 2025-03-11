@@ -101,5 +101,9 @@ namespace vkAsset
 			std::vector<uint32_t>& indexBuffer, std::vector<AVertex>& vertexBuffer);
 
 		void loadglTFFile(std::string filePath);
+
+		uint32_t NumVertices() const { return static_cast<uint32_t>(vertexBuffer.size()); }
+		uint32_t NumIndices() const { return static_cast<uint32_t>(indexBuffer.size()); }
+		uint32_t NumMaterials() const { return static_cast<uint32_t>(materials.size()); }
 	};
 }

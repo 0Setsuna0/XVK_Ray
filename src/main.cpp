@@ -27,7 +27,9 @@
 #include "Asset/Texture.h"
 #include "Vulkan/XVKDeviceMemory.h"
 #include "Utility/BufferUtil.h"
-
+#include "pathTracer.h"
+#include "Editor/UserSettings.h"
+#include "Editor/Camera.h"
 struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 color;
@@ -478,6 +480,9 @@ int main()
 		//window.Run();
 
 		vkDestroyPipeline(device.Handle(), graphicsPipeline, nullptr);
+		editor::UserSettings userSettings{};
+		xvk::WindowState windowState{ "test", 1920, 1080, true, false };
+		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR);
 	}
 	catch (const std::exception& e)
 	{

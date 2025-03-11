@@ -19,6 +19,8 @@ namespace xvk
 		const XVKWindow& GetWindow() const { return xvk_window; }
 		VkSurfaceKHR GetVulkanSurface() const { return vk_surface; };
 		
+		const std::vector<VkExtensionProperties>& GetExtensions() const { return vk_extensions; }
+		const std::vector<VkLayerProperties>& GetLayers() const { return vk_layers; }
 		const std::vector<const char*>& GetValidationLayers() const { return validationLayers; }
 
 		void CreateSurface();

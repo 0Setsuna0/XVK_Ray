@@ -1,8 +1,9 @@
 ﻿file(GLOB_RECURSE src_files ${CMAKE_SOURCE_DIR}/src/*.cpp ${CMAKE_SOURCE_DIR}/src/*.h)
 file(GLOB src_files_vulkan ${CMAKE_SOURCE_DIR}/src/Vulkan/*.cpp ${CMAKE_SOURCE_DIR}/src/Vulkan/*.h)
-file(GLOB src_files_vulkan_raytracing ${CMAKE_SOURCE_DIR}/src/Vulkan/VKRayTracing/*.cpp ${CMAKE_SOURCE_DIR}/src/Vulkan/VKRayTracing/*.h)
+file(GLOB src_files_vulkan_raytracing ${CMAKE_SOURCE_DIR}/src/Vulkan/RayTracing/*.cpp ${CMAKE_SOURCE_DIR}/src/Vulkan/RayTracing/*.h)
 file(GLOB src_files_utility ${CMAKE_SOURCE_DIR}/src/Utility/*.cpp ${CMAKE_SOURCE_DIR}/src/Utility/*.h)
 file(GLOB src_files_asset ${CMAKE_SOURCE_DIR}/src/Asset/*.cpp ${CMAKE_SOURCE_DIR}/src/Asset/*.h)
+file(GLOB src_files_asset ${CMAKE_SOURCE_DIR}/src/Editor/*.cpp ${CMAKE_SOURCE_DIR}/src/Editor/*.h)
 
 
 source_group("Main" FILES ${src_files})
