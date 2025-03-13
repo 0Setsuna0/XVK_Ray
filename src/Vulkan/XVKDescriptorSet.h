@@ -15,7 +15,7 @@ namespace xvk
 			size_t size);
 		~XVKDescriptorSets();
 
-		const VkDescriptorSet& Handle(size_t index) const { return vk_descriptorSets[index]; }
+		VkDescriptorSet Handle(size_t index) const { return vk_descriptorSets[index]; }
 		const XVKDescriptorPool& GetDescriptorPool() const { return xvk_descriptorPool; }
 
 

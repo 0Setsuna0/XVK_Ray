@@ -101,7 +101,9 @@ int main()
 	{
 		std::vector<const char*> testlayer{ "VK_LAYER_KHRONOS_validation" };
 		xvk::XVKInstance instance(window, testlayer);
-		std::vector<const char*> testextension{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		std::vector<const char*> testextension{ VK_KHR_SWAPCHAIN_EXTENSION_NAME,VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+		VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+		VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME };
 		xvk::XVKDevice device(instance, testextension);
 		xvk::XVKSwapChain swapChain(device, VK_PRESENT_MODE_MAILBOX_KHR);
 		xvk::XVKCommandPool commandPool(device, device.GraphicsQueueIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -421,8 +423,9 @@ int main()
 			scissor.extent = swapChain.GetExtent();
 			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+			VkDescriptorSet descriptors[] = { descriptorManager.GetDescriptorSets().Handle(imageIndex) };
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.Handle(), 0, 1,
-				&descriptorManager.GetDescriptorSets().Handle(imageIndex),
+				descriptors,
 				0, nullptr);
 
 			vkCmdDrawIndexed(commandBuffer, indices.size(), 1, 0, 0, 0);
@@ -481,8 +484,14 @@ int main()
 
 		vkDestroyPipeline(device.Handle(), graphicsPipeline, nullptr);
 		editor::UserSettings userSettings{};
+		userSettings.sceneIndex = 0;
+		userSettings.enableRayAccumulation = false;
+		userSettings.enableRayTracing = false;
+		userSettings.fov = 45.0f;
+		userSettings.spp = 8;
+		userSettings.numberOfBounces = 10;
 		xvk::WindowState windowState{ "test", 1920, 1080, true, false };
-		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR);
+		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR, {});
 	}
 	catch (const std::exception& e)
 	{

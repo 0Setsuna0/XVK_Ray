@@ -36,9 +36,15 @@ namespace vkAsset
 		const std::vector<VkImageView> GetTextureImageViews() const { return textureImageViewHandles; }
 		const std::vector<VkSampler> GetTextureSamplers() const { return textureSamplerHandles; }
 		void AddTextureImageFromGLTF(xvk::XVKCommandPool& commandPoolconst, const AglTFModel::Image& image, const AglTFModel::Sampler& sampler);
+	
+		bool HasSkyBox() const { return hasSkyBox; }
+		glm::mat4 GetDefaultModelViewMatrix() const { return defaultModelViewMatrix; }
+
 	private:
 		
-		
+		bool hasSkyBox = false;
+		glm::mat4 defaultModelViewMatrix;
+
 		const std::vector<AglTFModel> models;
 		std::vector<std::unique_ptr<AVulkanTexture>> textures;
 

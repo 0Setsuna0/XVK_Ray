@@ -29,7 +29,12 @@ namespace xvk
 		
 		m_window.reset(new XVKWindow(windowState));
 		m_instance.reset(new XVKInstance(*m_window, validationLayers));
-		std::vector<const char*> requiredExtension{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		std::vector<const char*> requiredExtension{
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+			VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+			VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME 
+		};
 		SetDevice(requiredExtension);
 		SetCommandPool();
 		CreateSwapChain();
@@ -115,11 +120,6 @@ namespace xvk
 		m_uniformBuffers[currentFrame].SetValue(GetUniformBufferObject(m_swapChain->GetExtent()));
 	}
 
-	vkAsset::UniformBufferObject Application::GetUniformBufferObject(VkExtent2D extent) const
-	{
-		return {};
-	}
-
 	void Application::DrawFrame()
 	{
 		//synchronization
@@ -157,6 +157,19 @@ namespace xvk
 		VkSemaphore waitSemaphores[] = { imageAvailableSemaphore};
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = commandBuffers;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		inFlightFence.Reset();
+		VULKAN_RUNTIME_CHECK(vkQueueSubmit(m_device->GraphicsQueue(), 1, &submitInfo, inFlightFence.Handle()),
+			"submit draw command buffer");
+
 		VkSwapchainKHR swapChains[] = { m_swapChain->Handle() };
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

@@ -41,6 +41,7 @@ namespace xvk
 		const XVKDevice& GetDevice() const { return *m_device; }
 		
 		void Run();
+
 	protected:
 		const XVKDepthBuffer& GetDepthBuffer() const { return *m_depthBuffer; }
 		const std::vector<vkAsset::AUniformBuffer>& GetUniformBuffers() const { return m_uniformBuffers; }
@@ -50,26 +51,25 @@ namespace xvk
 		XVKWindow& GetWindow() { return *m_window; }
 		XVKCommandPool& GetCommandPool() { return *m_commandPool; }
 
-		virtual void SetDevice(const std::vector<const char*>& requiredExtensions);
-		virtual void SetCommandPool();
-
 		//override ui func
-		virtual void OnDeviceSet() {}
 		virtual void CreateSwapChain();
 		virtual void DeleteSwapChain();
 		virtual void DrawFrame();
 		virtual void Render(VkCommandBuffer commandBuffer, const size_t currentFrame, const uint32_t imageIndex);
 		
-		virtual void OnKey(int key, int scancode, int action, int mods) { }
-		virtual void OnCursorPosition(double xpos, double ypos) { }
-		virtual void OnMouseButton(int button, int action, int mods) { }
-		virtual void OnScroll(double xoffset, double yoffset) { }
+		virtual void OnKey(int key, int scancode, int action, int mods) = 0;
+		virtual void OnCursorPosition(double xpos, double ypos) = 0;
+		virtual void OnMouseButton(int button, int action, int mods) = 0;
+		virtual void OnScroll(double xoffset, double yoffset) = 0;
 
-		virtual vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) const;
+		virtual vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) const = 0;
 		void UpdateUniformBuffer();
-		std::unique_ptr<vkAsset::AScene> m_scene;
+		const vkAsset::AScene* m_scene;
 
 	private:
+		void SetDevice(const std::vector<const char*>& requiredExtensions);
+		void SetCommandPool();
+		
 		const VkPresentModeKHR m_presentMode;
 
 		std::unique_ptr<XVKWindow> m_window;

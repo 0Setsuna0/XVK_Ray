@@ -5,6 +5,11 @@ namespace xvk::ray
 {
 	class ApplicationRT : public Application
 	{
+
+	protected:
+		void CreateAccelerationStructures() {}
+		void DeleteAccelerationStructures() {}
+
 	public:
 		ApplicationRT(const WindowState& windowState, VkPresentModeKHR presentMode,
 			bool enableValidationLayer);

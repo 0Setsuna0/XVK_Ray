@@ -25,6 +25,8 @@ namespace vkAsset
 		std::vector<AVulkanTextureImage> images;
 		uint32_t numTextures = 0;
 
+		defaultModelViewMatrix = glm::lookAt(glm::vec3(5, 5, 5), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+
 		for (const auto& model : models)
 		{
 			uint32_t indexOffset = indices.size();

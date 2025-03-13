@@ -49,14 +49,39 @@ namespace xvk
 			queueCreateInfos.push_back(queueInfo);
 		}
 
+		// Required device features.
 		VkPhysicalDeviceFeatures physicalDeviceFeatures = {};
 		physicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
+		physicalDeviceFeatures.shaderInt64 = true;
+		//--ray tracing features--
+		VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures = {};
+		bufferDeviceAddressFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+		bufferDeviceAddressFeatures.pNext = nullptr;
+		bufferDeviceAddressFeatures.bufferDeviceAddress = true;
+
+		VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = {};
+		indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+		indexingFeatures.pNext = &bufferDeviceAddressFeatures;
+		indexingFeatures.runtimeDescriptorArray = true;
+		indexingFeatures.shaderSampledImageArrayNonUniformIndexing = true;
+
+		VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {};
+		accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+		accelerationStructureFeatures.pNext = &indexingFeatures;
+		accelerationStructureFeatures.accelerationStructure = true;
+
+		VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingFeatures = {};
+		rayTracingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+		rayTracingFeatures.pNext = &accelerationStructureFeatures;
+		rayTracingFeatures.rayTracingPipeline = true;
+		//--
 
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.queueCreateInfoCount = queueCreateInfos.size();
 		createInfo.pEnabledFeatures = &physicalDeviceFeatures;
+		createInfo.pNext = &rayTracingFeatures;
 
 		createInfo.enabledExtensionCount = requiredExtensions.size();
 		createInfo.ppEnabledExtensionNames = requiredExtensions.data();

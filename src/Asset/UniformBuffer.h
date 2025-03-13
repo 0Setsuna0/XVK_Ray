@@ -24,6 +24,7 @@ namespace vkAsset
 		glm::mat4 modeViewInverse;
 		glm::mat4 projectionInverse;
 		uint32_t spp;
+		uint32_t totalNumberOfSamples;
 		uint32_t numberOfBounces;
 		uint32_t randomSeed;
 		uint32_t hasSkyBox;
