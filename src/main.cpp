@@ -25,6 +25,8 @@
 #include "Vulkan/XVKImageView.h"
 #include "Asset/TextureImage.h"
 #include "Asset/Texture.h"
+#include "Asset/Scene.h"
+#include "Asset/Model.h"
 #include "Vulkan/XVKDeviceMemory.h"
 #include "Utility/BufferUtil.h"
 #include "pathTracer.h"
@@ -114,8 +116,8 @@ int main()
 		xvk::DescriptorBinding binding{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT };
 		xvk::DescriptorBinding binding1{ 1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT };
 
-		xvk::XVKDescriptorSetManager descriptorManager(device, {binding, binding1}, swapChain.GetImages().size());
-        VkDescriptorSetLayout descriptorSetLayout = descriptorManager.GetDescriptorSetLayout().Handle();
+		xvk::XVKDescriptorSetManager descriptorManager(device, { binding, binding1 }, swapChain.GetImages().size());
+		VkDescriptorSetLayout descriptorSetLayout = descriptorManager.GetDescriptorSetLayout().Handle();
 
 		std::vector<xvk::XVKFrameBuffer> frameBuffers;
 		frameBuffers.reserve(swapChain.GetMinImageCount());
@@ -254,7 +256,7 @@ int main()
 			1, &pipelineInfo, nullptr, &graphicsPipeline));
 
 		//prepare buffer
-		
+
 		//--vertex buffer--
 		VkDeviceSize vertBufferSize = sizeof(vertices[0]) * vertices.size();
 		xvk::XVKBuffer stagingBuffer(device, vertBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
@@ -354,7 +356,7 @@ int main()
 			descriptorManager.GetDescriptorSets().UpdateDescriptors(writes);
 		}
 		//--
-		
+
 		//synchronization
 		std::vector<xvk::XVKSemaphore> imageAvailableSemaphores;
 		std::vector<xvk::XVKSemaphore> renderFinishedSemaphores;
@@ -376,7 +378,7 @@ int main()
 		int currentFrame = 0;
 		auto DrawFrame = [&]() {
 
-            vkWaitForFences(device.Handle(), 1, &inFlightFences[currentFrame].Handle(), VK_TRUE, 
+			vkWaitForFences(device.Handle(), 1, &inFlightFences[currentFrame].Handle(), VK_TRUE,
 				std::numeric_limits<uint64_t>::max());
 
 			uint32_t imageIndex;
@@ -433,11 +435,11 @@ int main()
 			vkCmdEndRenderPass(commandBuffer);
 
 			commandBuffers.End(imageIndex);
-			
+
 			VkSubmitInfo submitInfo = {};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-			VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame].Handle()};
+			VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame].Handle() };
 			VkPipelineStageFlags waitStages[] = {
 				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
 			};
@@ -448,7 +450,7 @@ int main()
 			submitInfo.commandBufferCount = 1;
 			submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
 
-			VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].Handle()};
+			VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].Handle() };
 			submitInfo.signalSemaphoreCount = 1;
 			submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -462,7 +464,7 @@ int main()
 			presentInfo.waitSemaphoreCount = 1;
 			presentInfo.pWaitSemaphores = signalSemaphores;
 
-			VkSwapchainKHR swapChains[] = { swapChain.Handle()};
+			VkSwapchainKHR swapChains[] = { swapChain.Handle() };
 			presentInfo.pSwapchains = swapChains;
 			presentInfo.pImageIndices = &imageIndex;
 			presentInfo.swapchainCount = 1;
@@ -472,7 +474,7 @@ int main()
 			result = vkQueuePresentKHR(device.PresentQueue(), &presentInfo);
 
 			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-		};
+			};
 
 		while (!glfwWindowShouldClose(window.Handle()))
 		{
@@ -491,7 +493,13 @@ int main()
 		userSettings.spp = 8;
 		userSettings.numberOfBounces = 10;
 		xvk::WindowState windowState{ "test", 1920, 1080, true, false };
-		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR, {});
+
+		vkAsset::AglTFModel model;
+		model.loadglTFFile(ASSET_DIR"model/cornell_box/scene.gltf");
+		std::vector<vkAsset::AglTFModel*> models = {&model};
+		
+		vkAsset::AScene scene(commandPool, models);
+		//PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR);
 	}
 	catch (const std::exception& e)
 	{

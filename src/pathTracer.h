@@ -12,7 +12,7 @@ class PathTracer final: public xvk::ray::ApplicationRT
 {
 public:
 	PathTracer(const editor::UserSettings& userSettings, const xvk::WindowState& windowConfig, 
-		VkPresentModeKHR presentMode, const std::vector<vkAsset::AScene>& sceneLists);
+		VkPresentModeKHR presentMode);
 	~PathTracer();
 
 protected:
@@ -40,7 +40,7 @@ private:
 	double lastTime = 0;
 	double currentTime = 0;
 
-	const std::vector<vkAsset::AScene>& m_scenes;
+	const std::vector<vkAsset::AScene> m_scenes;
 	
 	//ray tracing settings
 	uint32_t spp;

@@ -21,12 +21,11 @@ const bool EnableValidationLayers =
 #endif
 
 PathTracer::PathTracer(const editor::UserSettings& userSettings, const xvk::WindowState& windowState,
-	VkPresentModeKHR presentMode, const std::vector<vkAsset::AScene>& sceneLists)
+	VkPresentModeKHR presentMode)
 	:ApplicationRT(windowState, presentMode, EnableValidationLayers),
-	m_userSettings(userSettings),
-	m_scenes(sceneLists)
+	m_userSettings(userSettings)
 {
-	PostTracerInit();
+
 }
 
 PathTracer::~PathTracer()
@@ -38,6 +37,7 @@ void PathTracer::PostTracerInit()
 {
 	LoadCurrentScene(m_userSettings.sceneIndex);
 	CreateAccelerationStructures();
+	CreateSwapChain();
 }
 
 void PathTracer::CreateSwapChain()

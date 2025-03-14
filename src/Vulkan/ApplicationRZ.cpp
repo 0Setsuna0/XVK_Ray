@@ -37,7 +37,6 @@ namespace xvk
 		};
 		SetDevice(requiredExtension);
 		SetCommandPool();
-		CreateSwapChain();
 	}
 
 	Application::~Application()
@@ -227,9 +226,9 @@ namespace xvk
 			uint32_t indexOffset = 0;
 			for(const auto& model : m_scene->GetModels())
 			{
-				vkCmdDrawIndexed(commandBuffer, model.NumIndices(), 1, indexOffset, vertexOffset, 0);
-				indexOffset += model.NumIndices();
-				vertexOffset += model.NumVertices();
+				vkCmdDrawIndexed(commandBuffer, model->NumIndices(), 1, indexOffset, vertexOffset, 0);
+				indexOffset += model->NumIndices();
+				vertexOffset += model->NumVertices();
 			}
 		vkCmdEndRenderPass(commandBuffer);
 	}

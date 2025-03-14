@@ -43,12 +43,6 @@ namespace vkAsset
 			}
 		};
 
-		struct Material
-		{
-			glm::vec4 baseColorFactor = glm::vec4(1.0f);
-			uint32_t baseColorTextureIndex;
-		};
-
 		struct Image
 		{
 			VkDeviceSize bufferSize;
@@ -57,26 +51,12 @@ namespace vkAsset
 			unsigned char* bufferData;
 		};
 
-		struct Sampler
-		{
-			VkSamplerAddressMode addressModeU;
-			VkSamplerAddressMode addressModeV;
-			VkSamplerAddressMode addressModeW;
-
-			VkFilter minFilter;
-			VkFilter maxFilter;
-		};
-
 		struct Texture {
 			int32_t imageIndex;
-			int32_t samplerIndex;
 		};
-
-
 
 		std::vector<AglTFModel::Node*> nodes;
 		std::vector<AglTFModel::Image> images;
-		std::vector<AglTFModel::Sampler> textureSamplers;
 		std::vector<AglTFModel::Texture> textures;
 
 		std::vector<AVertex> vertexBuffer;
@@ -94,8 +74,6 @@ namespace vkAsset
 		void loadTextures(tinygltf::Model& input);
 
 		void loadMaterials(tinygltf::Model& input);
-
-		void loadSampler(tinygltf::Model& input);
 
 		void loadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, AglTFModel::Node* parent,
 			std::vector<uint32_t>& indexBuffer, std::vector<AVertex>& vertexBuffer);

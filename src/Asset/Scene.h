@@ -23,10 +23,10 @@ namespace vkAsset
 	class AScene
 	{
 	public:
-		AScene(xvk::XVKCommandPool& commandPool, std::vector<AglTFModel>&& models);
+		AScene(xvk::XVKCommandPool& commandPool, const std::vector<AglTFModel*>& models);
 		~AScene();
 
-		const std::vector<AglTFModel>& GetModels() const { return models; }
+		const std::vector<AglTFModel*>& GetModels() const { return models; }
 		
 		const xvk::XVKBuffer& GetVertexBuffer() const { return *vertexBuffer; }
 		const xvk::XVKBuffer& GetIndexBuffer() const { return *indexBuffer; }
@@ -35,7 +35,7 @@ namespace vkAsset
 		const xvk::XVKBuffer& GetOffsetsBuffer() const { return *offsetsBuffer; }
 		const std::vector<VkImageView> GetTextureImageViews() const { return textureImageViewHandles; }
 		const std::vector<VkSampler> GetTextureSamplers() const { return textureSamplerHandles; }
-		void AddTextureImageFromGLTF(xvk::XVKCommandPool& commandPoolconst, const AglTFModel::Image& image, const AglTFModel::Sampler& sampler);
+		void AddTextureImageFromGLTF(xvk::XVKCommandPool& commandPoolconst, const AglTFModel::Image& image);
 	
 		bool HasSkyBox() const { return hasSkyBox; }
 		glm::mat4 GetDefaultModelViewMatrix() const { return defaultModelViewMatrix; }
@@ -45,7 +45,7 @@ namespace vkAsset
 		bool hasSkyBox = false;
 		glm::mat4 defaultModelViewMatrix;
 
-		const std::vector<AglTFModel> models;
+		const std::vector<AglTFModel*>& models;
 		std::vector<std::unique_ptr<AVulkanTexture>> textures;
 
 		std::unique_ptr<xvk::XVKBuffer> vertexBuffer;

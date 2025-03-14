@@ -39,7 +39,9 @@ namespace xvk
 		const XVKSwapChain& GetSwapChain() const { return *m_swapChain; }
 		const XVKWindow& const_GetWindow() const { return *m_window; }
 		const XVKDevice& GetDevice() const { return *m_device; }
-		
+		XVKWindow& GetWindow() { return *m_window; }
+		XVKCommandPool& GetCommandPool() { return *m_commandPool; }
+
 		void Run();
 
 	protected:
@@ -47,9 +49,6 @@ namespace xvk
 		const std::vector<vkAsset::AUniformBuffer>& GetUniformBuffers() const { return m_uniformBuffers; }
 		const XVKGraphicsPipeline& GetGraphicsPipeline() const { return *m_graphicsPipeline; }
 		const XVKFrameBuffer& GetSwapChainFrameBuffer(uint32_t index) const { return m_frameBuffers[index]; }
-
-		XVKWindow& GetWindow() { return *m_window; }
-		XVKCommandPool& GetCommandPool() { return *m_commandPool; }
 
 		//override ui func
 		virtual void CreateSwapChain();
