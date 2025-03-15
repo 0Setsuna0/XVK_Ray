@@ -27,8 +27,8 @@ namespace xvk
 		const auto attributeDescription = vkAsset::AVertex::getAttributeDescriptions();
 		
 		//shader
-		XVKShaderModule vertShaderMoudle(device, SHADER_DIR"vert.spv");
-		XVKShaderModule fragShaderModule(device, SHADER_DIR"frag.spv");
+		XVKShaderModule vertShaderMoudle(device, SHADER_DIR"/HLSL/simpleRZ.vert.spv");
+		XVKShaderModule fragShaderModule(device, SHADER_DIR"/HLSL/simpleRZ.frag.spv");
 		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderMoudle.CreateShaderStage(VK_SHADER_STAGE_VERTEX_BIT),
 			fragShaderModule.CreateShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT)};
 

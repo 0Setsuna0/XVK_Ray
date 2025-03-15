@@ -16,9 +16,6 @@ namespace vkAsset
 	class UniformBufferObject
 	{
 	public:
-
-		glm::mat4 model;
-		glm::mat4 view;
 		glm::mat4 modelView;
 		glm::mat4 projection;
 		glm::mat4 modeViewInverse;

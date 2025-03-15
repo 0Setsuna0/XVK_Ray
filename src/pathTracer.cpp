@@ -33,8 +33,9 @@ PathTracer::~PathTracer()
 
 }
 
-void PathTracer::PostTracerInit()
+void PathTracer::PostTracerInit(const std::vector<vkAsset::AScene*>& sceneList)
 {
+	m_scenes = sceneList;
 	LoadCurrentScene(m_userSettings.sceneIndex);
 	CreateAccelerationStructures();
 	CreateSwapChain();
@@ -113,7 +114,7 @@ void PathTracer::OnScroll(double xoffset, double yoffset)
 
 void PathTracer::LoadCurrentScene(uint32_t sceneIndex)
 {
-	m_scene = &m_scenes[sceneIndex];
+	m_scene = m_scenes[sceneIndex];
 	m_camera.Reset(m_scene->GetDefaultModelViewMatrix());
 	rebuildRays = true;
 }
@@ -121,7 +122,6 @@ void PathTracer::LoadCurrentScene(uint32_t sceneIndex)
 vkAsset::UniformBufferObject PathTracer::GetUniformBufferObject(VkExtent2D extent)const
 {
 	vkAsset::UniformBufferObject ubo{};
-	ubo.model = glm::mat4(1.0f);
 	ubo.modelView = m_camera.GetViewMatrix();
 	ubo.projection = glm::perspective(glm::radians(m_userSettings.fov), 
 		static_cast<float>(extent.width) / static_cast<float>(extent.height), 0.1f, 1000.0f);

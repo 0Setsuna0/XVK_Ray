@@ -14,6 +14,7 @@ public:
 	PathTracer(const editor::UserSettings& userSettings, const xvk::WindowState& windowConfig, 
 		VkPresentModeKHR presentMode);
 	~PathTracer();
+	void PostTracerInit(const std::vector<vkAsset::AScene*>& sceneList);
 
 protected:
 	void CreateSwapChain()override;
@@ -28,7 +29,7 @@ protected:
 	vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) const override;
 
 private:
-	void PostTracerInit();
+	
 	void LoadCurrentScene(uint32_t sceneIndex);
 
 	uint32_t renderedSceneIndex = 0;
@@ -40,7 +41,7 @@ private:
 	double lastTime = 0;
 	double currentTime = 0;
 
-	const std::vector<vkAsset::AScene> m_scenes;
+	std::vector<vkAsset::AScene*> m_scenes;
 	
 	//ray tracing settings
 	uint32_t spp;
