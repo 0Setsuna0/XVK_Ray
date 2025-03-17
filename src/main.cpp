@@ -95,7 +95,7 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 int main()
 {
-	xvk::XVKWindow window({ "test", 1920, 1080, true, false });
+	//xvk::XVKWindow window({ "test", 1920, 1080, true, false });
 	try
 	{
 #pragma region api_test
@@ -501,6 +501,7 @@ int main()
 		vkAsset::AScene scene(app.GetCommandPool(), models);
 		std::vector<vkAsset::AScene*> sceneList = { &scene };
 		app.PostTracerInit(sceneList);
+		app.Run();
 
 	}
 	catch (const std::exception& e)

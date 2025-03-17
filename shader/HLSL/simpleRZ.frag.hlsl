@@ -25,7 +25,7 @@ PS_OUTPUT main(PS_INPUT input)
 
     const int textureId = m.baseColorTextureIndex;
 
-    const float3 lightVector = normalize(float3(5, 4, 3));
+    const float3 lightVector = normalize(float3(3, 0, 0));
     const float d = max(dot(lightVector, normalize(input.FragNormal)), 0.2f);
 
     float3 c = input.FragColor * d;

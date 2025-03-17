@@ -1,6 +1,7 @@
 #pragma once
 #include "Vulkan/XVKCommon.h"
 #include "Utility/ResourceLoader.h"
+#define GLM_FORCE_RIGHT_HANDED
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>

@@ -25,8 +25,8 @@ namespace vkAsset
 		std::vector<AVulkanTextureImage> images;
 		uint32_t numTextures = 0;
 
-		defaultModelViewMatrix = glm::lookAt(glm::vec3(5, 5, 5), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-
+		//defaultModelViewMatrix = glm::lookAt(glm::vec3(0, -3, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
+		defaultModelViewMatrix = glm::lookAt(glm::vec3(10, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 		for (const auto& model : models)
 		{
 			uint32_t indexOffset = indices.size();
@@ -106,7 +106,7 @@ namespace vkAsset
 	{
 		//todo: add glTFModel sampler support
 		textures.emplace_back(std::make_unique<AVulkanTexture>(image.bufferData, image.width, image.height, xvk::SamplerConfig()));
-		textureImages.emplace_back(std::make_unique<AVulkanTextureImage>(commandPool, image.bufferData, 
+		textureImages.emplace_back(std::make_unique<AVulkanTextureImage>(commandPool, image.bufferData,
 			xvk::SamplerConfig(), image.width, image.height));
 		textureImageViewHandles.emplace_back(textureImages.back()->GetTextureImageView().Handle());
 		textureSamplerHandles.emplace_back(textureImages.back()->GetTextureImageSampler().Handle());

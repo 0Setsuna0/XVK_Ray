@@ -27,25 +27,28 @@ namespace vkAsset
 
 			unsigned char* buffer = nullptr;
 			VkDeviceSize bufferSize = 0;
-			
+
 			if (glTFImage.component == 3)
 			{
 				bufferSize = glTFImage.width * glTFImage.height * 4;
 				buffer = new unsigned char[bufferSize];
 				unsigned char* rgba = buffer;
 				unsigned char* rgb = &glTFImage.image[0];
-				for (size_t i = 0; i < glTFImage.width * glTFImage.height; ++i) 
+				for (size_t i = 0; i < glTFImage.width * glTFImage.height; ++i)
 				{
 					memcpy(rgba, rgb, sizeof(unsigned char) * 3);
+					rgba[3] = 255;
 					rgba += 4;
 					rgb += 3;
 				}
 			}
 			else
 			{
-				buffer = &glTFImage.image[0];
 				bufferSize = glTFImage.image.size();
+				buffer = new unsigned char[bufferSize];
+				memcpy(buffer, glTFImage.image.data(), bufferSize); 
 			}
+
 
 			images[i].bufferData = buffer;
 		}
@@ -73,6 +76,10 @@ namespace vkAsset
 			// Get base color texture index
 			if (glTFMaterial.values.find("baseColorTexture") != glTFMaterial.values.end()) {
 				materials[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
+			}
+			else
+			{
+				materials[i].baseColorTextureIndex = -1;
 			}
 
 		}

@@ -82,6 +82,11 @@ namespace xvk
 		m_swapChain.reset(new XVKSwapChain(*m_device, m_presentMode));
 		m_depthBuffer.reset(new XVKDepthBuffer(*m_commandPool, m_swapChain->GetExtent()));
 
+		m_imageAvailableSemaphores.reserve(m_swapChain->GetImageViews().size());
+		m_renderFinishedSemaphores.reserve(m_swapChain->GetImageViews().size());
+		m_inFlightFences.reserve(m_swapChain->GetImageViews().size());
+		m_uniformBuffers.reserve(m_swapChain->GetImageViews().size());
+
 		for (int i = 0; i < m_swapChain->GetImageViews().size(); i++)
 		{
 			m_imageAvailableSemaphores.emplace_back(*m_device);

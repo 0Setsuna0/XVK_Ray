@@ -10,6 +10,7 @@ namespace xvk
 	{
 		class XVKRayFuncManager
 		{
+		public:
 			explicit XVKRayFuncManager(const XVKDevice& device);
 			~XVKRayFuncManager();
 
