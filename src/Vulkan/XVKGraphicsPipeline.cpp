@@ -148,11 +148,11 @@ namespace xvk
 
 			//image
 			std::vector<VkDescriptorImageInfo> imageInfos(scene.GetTextureSamplers().size());
-			for (uint32_t j = 0; j < imageInfos.size(); j++)
+			for (uint32_t t = 0; t < imageInfos.size(); t++)
 			{
-				imageInfos[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				imageInfos[j].imageView = scene.GetTextureImageViews()[j];
-				imageInfos[j].sampler = scene.GetTextureSamplers()[j];
+				imageInfos[t].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				imageInfos[t].imageView = scene.GetTextureImageViews()[t];
+				imageInfos[t].sampler = scene.GetTextureSamplers()[t];
 			}
 
 			std::vector<VkWriteDescriptorSet> descriptorSetWrites;

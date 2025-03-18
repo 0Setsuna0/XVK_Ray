@@ -3,7 +3,7 @@ file(GLOB src_files_vulkan ${CMAKE_SOURCE_DIR}/src/Vulkan/*.cpp ${CMAKE_SOURCE_D
 file(GLOB src_files_vulkan_raytracing ${CMAKE_SOURCE_DIR}/src/Vulkan/RayTracing/*.cpp ${CMAKE_SOURCE_DIR}/src/Vulkan/RayTracing/*.h)
 file(GLOB src_files_utility ${CMAKE_SOURCE_DIR}/src/Utility/*.cpp ${CMAKE_SOURCE_DIR}/src/Utility/*.h)
 file(GLOB src_files_asset ${CMAKE_SOURCE_DIR}/src/Asset/*.cpp ${CMAKE_SOURCE_DIR}/src/Asset/*.h)
-file(GLOB src_files_asset ${CMAKE_SOURCE_DIR}/src/Editor/*.cpp ${CMAKE_SOURCE_DIR}/src/Editor/*.h)
+file(GLOB src_files_editor ${CMAKE_SOURCE_DIR}/src/Editor/*.cpp ${CMAKE_SOURCE_DIR}/src/Editor/*.h)
 
 
 source_group("Main" FILES ${src_files})
@@ -11,13 +11,15 @@ source_group("Vulkan" FILES ${src_files_vulkan})
 source_group("VulkanRT" FILES ${src_files_vulkan_raytracing})
 source_group("Utility" FILES ${src_files_utility})
 source_group("Asset" FILES ${src_files_asset})
+source_group("Editor" FILES ${src_files_editor})
 
 add_executable(ReSTIR_PT 
   ${src_files} 
   ${src_files_vulkan} 
   ${src_files_vulkan_raytracing} 
   ${src_files_utility}
-  ${src_files_asset})
+  ${src_files_asset}
+  ${src_files_editor})
 
 target_link_libraries(ReSTIR_PT PUBLIC Vulkan::Vulkan)
 target_link_libraries(ReSTIR_PT PUBLIC glfw)
