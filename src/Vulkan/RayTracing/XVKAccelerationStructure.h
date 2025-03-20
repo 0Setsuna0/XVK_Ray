@@ -25,7 +25,7 @@ namespace xvk::ray
 		const XVKRayFuncManager& GetRayFuncManager() const { return xvk_deviceFunc; }
 		const VkAccelerationStructureBuildSizesInfoKHR GetBuildSizesInfo() const { return vk_buildSizesInfo; }
 
-		static void MemoryBarrier(VkCommandBuffer commandBuffer);
+		static void MemoryBarrierRT(VkCommandBuffer commandBuffer);
 	protected:
 		XVKAccelerationStructure(const XVKRayFuncManager& deviceFunc, const XVKRayTracingContext& rayTracingContext);
 

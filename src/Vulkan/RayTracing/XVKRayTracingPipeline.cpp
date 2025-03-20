@@ -126,9 +126,9 @@ namespace xvk::ray
 		xvk_pipelineLayout.reset(new XVKPipelineLayout(device, xvk_descriptorSetManager->GetDescriptorSetLayout()));
 		
 		//load shaders
-		const XVKShaderModule rayGenShader(device, SHADER_DIR"HLSL/RayTracing/rgen.spv");
-		const XVKShaderModule rayMissShader(device, SHADER_DIR"HLSL/RayTracing/rmiss.spv");
-		const XVKShaderModule rayHitShader(device, SHADER_DIR"HLSL/RayTracing/rhit.spv");
+		const XVKShaderModule rayGenShader(device, SHADER_DIR"HLSL/rgen.spv");
+		const XVKShaderModule rayMissShader(device, SHADER_DIR"HLSL/rmiss.spv");
+		const XVKShaderModule rayHitShader(device, SHADER_DIR"HLSL/rhit.spv");
 
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages =
 		{

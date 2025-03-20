@@ -16,6 +16,7 @@ namespace xvk::ray
 		geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
 		geometry.pNext = nullptr;
 		geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+		geometry.geometry.triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
 		geometry.geometry.triangles.vertexData.deviceAddress = scene.GetVertexBuffer().GetDeviceAddress();
 		geometry.geometry.triangles.vertexStride = sizeof(vkAsset::AVertex);
 		geometry.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;

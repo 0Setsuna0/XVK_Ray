@@ -78,7 +78,7 @@ namespace xvk::ray
 			&accelerationStructureInfo, nullptr, &vk_accelerationStructure), "create acceleration structure");
 	}
 
-	void XVKAccelerationStructure::MemoryBarrier(VkCommandBuffer commandBuffer)
+	void XVKAccelerationStructure::MemoryBarrierRT(VkCommandBuffer commandBuffer)
 	{
 		VkMemoryBarrier memoryBarrier = {};
 		memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
