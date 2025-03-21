@@ -97,6 +97,7 @@ namespace xvk::ray
 			//offsets buffer
 			VkDescriptorBufferInfo offsetsBufferInfo = {};
 			offsetsBufferInfo.buffer = scene.GetOffsetsBuffer().Handle();
+			offsetsBufferInfo.range = VK_WHOLE_SIZE;
 
 			std::vector<VkDescriptorImageInfo> imageInfos(scene.GetTextureSamplers().size());
 

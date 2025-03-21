@@ -45,7 +45,7 @@ namespace xvk::ray
 
 	ApplicationRT::~ApplicationRT()
 	{
-		Application::DeleteSwapChain();
+		ApplicationRT::DeleteSwapChain();
 		DeleteAccelerationStructures();
 
 		m_rayTracingContext.reset();
@@ -206,9 +206,9 @@ namespace xvk::ray
 		//allocate all geometry memory
 		const auto total = GetTotalRequirements(m_blas);
 		m_blasBuffer.reset(new XVKBuffer(GetDevice(), total.accelerationStructureSize, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT));
-		m_blasBufferMemory.reset(new XVKDeviceMemory(m_blasBuffer->AllocateMemory(VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_blasBufferMemory.reset(new XVKDeviceMemory(m_blasBuffer->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 		m_blasScratchBuffer.reset(new XVKBuffer(GetDevice(), total.buildScratchSize, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
-		m_blasScratchBufferMemory.reset(new XVKDeviceMemory(m_blasScratchBuffer->AllocateMemory(VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_blasScratchBufferMemory.reset(new XVKDeviceMemory(m_blasScratchBuffer->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 
 		//generate structure
 		VkDeviceSize scratchOffset = 0;
@@ -251,7 +251,7 @@ namespace xvk::ray
 		m_tlasBufferMemory.reset(new XVKDeviceMemory(m_tlasBuffer->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
 
 		m_tlasScratchBuffer.reset(new XVKBuffer(GetDevice(), total.buildScratchSize, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
-		m_tlasScratchBufferMemory.reset(new XVKDeviceMemory(m_tlasScratchBuffer->AllocateMemory(VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_tlasScratchBufferMemory.reset(new XVKDeviceMemory(m_tlasScratchBuffer->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 
 		// Generate the structures.
 		m_tlas[0].GenerateTLAS(commandBuffer, *m_tlasScratchBuffer, 0, *m_tlasBuffer, 0);

@@ -81,7 +81,7 @@ namespace vkAsset
 			{
 				materials[i].baseColorTextureIndex = -1;
 			}
-
+			materials[i].materialModel = AMaterial::Enum::Lambertian;
 		}
 	}
 

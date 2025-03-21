@@ -25,7 +25,7 @@ PathTracer::PathTracer(const editor::UserSettings& userSettings, const xvk::Wind
 	:ApplicationRT(windowState, presentMode, EnableValidationLayers),
 	m_userSettings(userSettings)
 {
-
+	
 }
 
 PathTracer::~PathTracer()
@@ -65,6 +65,15 @@ void PathTracer::DrawFrame()
 		return;
 	}
 
+	if (rebuildRays || !m_userSettings.enableRayAccumulation)
+	{
+		totalSamples = 0;
+		rebuildRays = false;
+	}
+
+	spp = glm::clamp(m_userSettings.maxSpp - totalSamples, 0u, m_userSettings.spp);
+	totalSamples += spp;
+
 	xvk::Application::DrawFrame();
 }
 void PathTracer::Render(VkCommandBuffer commandBuffer, const size_t currentFrame, const uint32_t imageIndex)
@@ -76,8 +85,8 @@ void PathTracer::Render(VkCommandBuffer commandBuffer, const size_t currentFrame
 	rebuildRays = m_camera.UpdateCamera(1, deltaTime);
 
 	//todo: add path tracing code here
-	//xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex);
-	xvk::Application::Render(commandBuffer, currentFrame, imageIndex);
+	//xvk::Application::Render(commandBuffer, currentFrame, imageIndex);
+	xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex);
 }
 
 void PathTracer::OnKey(int key, int scancode, int action, int mods)
@@ -130,11 +139,11 @@ vkAsset::UniformBufferObject PathTracer::GetUniformBufferObject(VkExtent2D exten
 	ubo.projection[1][1] *= -1;//flip y axis to fit vulkan
 	ubo.modeViewInverse = glm::inverse(ubo.modelView);
 	ubo.projectionInverse = glm::inverse(ubo.projection);
-	ubo.spp = spp;
+	ubo.spp = m_userSettings.spp;
 	ubo.totalNumberOfSamples = totalSamples;
 	ubo.numberOfBounces = m_userSettings.numberOfBounces;
 	ubo.randomSeed = 1;
-	ubo.hasSkyBox = m_scene->HasSkyBox();
+	ubo.hasSkyBox = true;
 
 	return ubo;
 }

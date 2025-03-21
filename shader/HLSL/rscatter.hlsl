@@ -18,8 +18,8 @@ float Schlick(float cosine, float refractionIndex)
 RayPayload ScatterLambertian(Material m, float3 direction, float3 normal, float2 texCoord, float t, inout uint seed)
 {
 	bool isScattered = dot(direction, normal) < 0;
-	float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].Sample(LinearSampler, texCoord) : float4(1, 1, 1, 1);
-	float4 colorAndDistance = float4(m.baseColor.rgb * texColor.rgb, t);
+    float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].SampleLevel(LinearSampler, texCoord, 0) : float4(1, 1, 1, 1);
+    float4 colorAndDistance = float4(m.baseColor.rgb * texColor.rgb, t);
 	float4 scatter = float4(normal + RandomInUnitSphere(seed), isScattered ? 1 : 0);
 
 	RayPayload rayPayload;
@@ -35,7 +35,7 @@ RayPayload ScatterMetallic(Material m, float3 direction, float3 normal, float2 t
 	float3 reflected = reflect(direction, normal);
 	bool isScattered = dot(reflected, normal) > 0;
 	
-	float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].Sample(LinearSampler, texCoord) : float4(1, 1, 1, 1);
+    float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].SampleLevel(LinearSampler, texCoord, 0) : float4(1, 1, 1, 1);
 	float4 colorAndDistance = float4(m.baseColor.rgb * texColor.rgb, t);
 	float4 scatter = float4(reflected + m.fuzziness * RandomInUnitSphere(seed), isScattered ? 1 : 0);
 	
@@ -57,7 +57,7 @@ RayPayload ScatterDieletric(Material m, float3 direction, float3 normal, float2 
 	float3 refracted = refract(direction, outwardNormal, niOverNt);
 	float reflectProb = any(refracted) ? Schlick(cosine, m.refractionIndex) : 1.0;
 
-	float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].Sample(LinearSampler, texCoord) : float4(1, 1, 1, 1);
+    float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].SampleLevel(LinearSampler, texCoord, 0) : float4(1, 1, 1, 1);
     
 	float4 colorAndDistance = float4(texColor.rgb, t);
 	float4 scatter = RandomFloat(seed) < reflectProb ? float4(reflect(direction, normal), 1) : float4(refracted, 1);

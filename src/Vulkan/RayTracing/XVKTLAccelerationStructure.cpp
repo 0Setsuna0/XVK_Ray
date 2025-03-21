@@ -26,6 +26,7 @@ namespace xvk::ray
 		vk_buildGeometryInfo.flags = vk_flags;
 		vk_buildGeometryInfo.geometryCount = 1;
 		vk_buildGeometryInfo.pGeometries = &vk_TLASGeometry;
+
 		vk_buildGeometryInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
 		vk_buildGeometryInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 		vk_buildGeometryInfo.srcAccelerationStructure = nullptr;

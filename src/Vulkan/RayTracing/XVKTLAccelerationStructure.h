@@ -39,7 +39,7 @@ namespace xvk::ray
 	private:
 
 		uint32_t instancesCount;
-		VkAccelerationStructureGeometryInstancesDataKHR vk_instancesData;
-		VkAccelerationStructureGeometryKHR vk_TLASGeometry;
+		VkAccelerationStructureGeometryInstancesDataKHR vk_instancesData = {};
+		VkAccelerationStructureGeometryKHR vk_TLASGeometry = {};
 	};
 }

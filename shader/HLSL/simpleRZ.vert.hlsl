@@ -38,7 +38,7 @@ VS_OUTPUT main(VS_INPUT input)
     output.FragColor = m.baseColor.xyz;
 
     // 计算法线（注意：这里需要 ModelInverseTranspose 矩阵来正确变换法线）
-    output.FragNormal = mul(uniformBufferObject.modelViewInverse, float4(input.normal, 0.0f)).xyz;
+    output.FragNormal = float4(input.normal, 0.0f).xyz;
 
     // 传递纹理坐标
     output.FragTexCoord = input.texCoord;

@@ -10,8 +10,9 @@ namespace editor
 		//renderer
 		bool enableRayTracing;
 		bool enableRayAccumulation;
-		int spp;
-		int numberOfBounces;
+		uint32_t spp;
+		uint32_t numberOfBounces;
+		uint32_t maxSpp;
 
 		//camera
 		float fov;

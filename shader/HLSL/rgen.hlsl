@@ -5,9 +5,9 @@
 //resource bindings
 
 RaytracingAccelerationStructure scene : register(t0);
-RWTexture2D<float4> AccumulationImage : register(u0);
-RWTexture2D<float4> OutputImage : register(u1);
-cbuffer UniformBuffer : register(b0)
+RWTexture2D<float4> AccumulationImage : register(u1);
+RWTexture2D<float4> OutputImage : register(u2);
+cbuffer UniformBuffer : register(b3)
 {
     UniformBufferObject uniformBufferObject;
 };
@@ -29,6 +29,8 @@ void main()
     
     uint pixelRandomSeed = uniformBufferObject.randomSeed;
     RayPayload rayPayload;
+    //rayPayload.ColorAndDistance = float4(0, 0, 0, 0); // 初始化
+    //rayPayload.ScatterDirection = float4(0, 0, 0, 0);
     rayPayload.RandomSeed = InitRandomSeed(
         InitRandomSeed(launchID.x, launchID.y),
         uniformBufferObject.totalNumberOfSamples
@@ -47,8 +49,63 @@ void main()
         float2 uv = (pixel / launchSize) * 2.0 - 1.0;//texture uv range[-1, 1]
 
         float2 offset = RandomInUnitDisk(rayPayload.RandomSeed);
-        float4 origin = mul(uniformBufferObject.modelViewInverse, float4(offset, 0, 1)); 
+        float4 origin = mul(uniformBufferObject.modelViewInverse, float4(0, 0, 0, 1)); 
         float4 target = mul(uniformBufferObject.projectionInverse, float4(uv.x, uv.y, 1, 1));
+        float4 direction = mul(uniformBufferObject.modelViewInverse, float4(normalize(target.xyz), 0));
+
+        float3 rayColor = 1;
+        
+        for (uint bounce = 0; bounce <= uniformBufferObject.numberOfBounces; bounce++)
+        {
+            if(bounce == uniformBufferObject.numberOfBounces)
+            {
+                rayColor = 0;
+                break;
+            }
+            
+            RayDesc ray;
+            ray.Origin = origin.xyz;
+            ray.Direction = direction.xyz;
+            ray.TMin = 0.001;
+            ray.TMax = 10000.0f;
+            
+            // 调用TraceRay
+            TraceRay(
+                scene, // 加速结构
+                RAY_FLAG_NONE, // 光线标志 (替换gl_RayFlagsOpaqueEXT)
+                0xFF, // Instance掩码 (保持0xff)
+                0, // SBT记录偏移
+                0, // SBT记录步长
+                0, // 未命中着色器索引
+                ray, // 光线描述结构体
+                rayPayload); // 直接传递载荷对象
+            
+            float3 hitColor = rayPayload.ColorAndDistance.rgb;
+            float t = rayPayload.ColorAndDistance.w;
+            bool isScattered = rayPayload.ScatterDirection.w > 0;
+
+            rayColor *= hitColor;
+
+            if (t < 0 || !isScattered)
+                break;
+
+            origin.xyz += t * direction.xyz;
+            direction.xyz = rayPayload.ScatterDirection.xyz;
+
+        }
+
+        pixelColor += rayColor;
     }
 
+    bool accumulate = uniformBufferObject.spp != uniformBufferObject.totalNumberOfSamples;
+    float3 accumulatedColor = accumulate ?
+        AccumulationImage[launchID].rgb :
+        float3(0, 0, 0);
+    accumulatedColor += pixelColor;
+
+    float3 finalColor = accumulatedColor / uniformBufferObject.totalNumberOfSamples;
+    finalColor = sqrt(finalColor);
+    
+    AccumulationImage[launchID] = float4(accumulatedColor, 0);
+    OutputImage[launchID] = float4(finalColor, 0);
 }

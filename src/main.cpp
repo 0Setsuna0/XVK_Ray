@@ -489,14 +489,15 @@ int main()
 		userSettings.enableRayAccumulation = false;
 		userSettings.enableRayTracing = false;
 		userSettings.fov = 45.0f;
-		userSettings.spp = 8;
+		userSettings.spp = 3;
 		userSettings.numberOfBounces = 10;
+		userSettings.maxSpp = 21;
 		xvk::WindowState windowState{ "test", 1920, 1080, true, false };
 		
 		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR);
 
 		vkAsset::AglTFModel model;
-		model.loadglTFFile(ASSET_DIR"model/cornell_box/scene.gltf");
+		model.loadglTFFile(ASSET_DIR"model/cb2/scene.gltf");
 		std::vector<vkAsset::AglTFModel*> models = { &model };
 		vkAsset::AScene scene(app.GetCommandPool(), models);
 		std::vector<vkAsset::AScene*> sceneList = { &scene };

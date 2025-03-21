@@ -70,9 +70,14 @@ namespace xvk
 		accelerationStructureFeatures.pNext = &indexingFeatures;
 		accelerationStructureFeatures.accelerationStructure = true;
 
+		VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {};
+		rayQueryFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR;
+		rayQueryFeatures.rayQuery = VK_TRUE;
+		rayQueryFeatures.pNext = &accelerationStructureFeatures;
+
 		VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingFeatures = {};
 		rayTracingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
-		rayTracingFeatures.pNext = &accelerationStructureFeatures;
+		rayTracingFeatures.pNext = &rayQueryFeatures;
 		rayTracingFeatures.rayTracingPipeline = true;
 		//--
 

@@ -75,8 +75,8 @@ namespace xvk::ray
 
 		const auto& device = rayTracingContext.GetDevice();
 
-		buffer.reset(new XVKBuffer(device, totalSize, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT));
-		bufferMemory.reset(new XVKDeviceMemory(buffer->AllocateMemory(VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
+		buffer.reset(new XVKBuffer(device, totalSize, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR));
+		bufferMemory.reset(new XVKDeviceMemory(buffer->AllocateMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 	
 		//generate table
 		const uint32_t handleSize = rayTracingContext.ShaderGroupHandleSize();
