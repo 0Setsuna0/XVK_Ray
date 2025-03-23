@@ -26,6 +26,7 @@ namespace xvk
 
 		VkExtent2D FramebufferSize() const;
 		VkExtent2D WindowSize() const;
+		float GetWindowScale() const;
 
 		std::vector<const char*> GetRequiredInstanceExtensions() const;
 

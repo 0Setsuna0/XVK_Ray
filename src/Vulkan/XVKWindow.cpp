@@ -89,7 +89,7 @@ namespace xvk
 	VkExtent2D XVKWindow::FramebufferSize() const
 	{
 		int width, height;
-		glfwGetWindowSize(vk_window, &width, &height);
+		glfwGetFramebufferSize(vk_window, &width, &height);
 		return VkExtent2D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 	}
 
@@ -98,6 +98,15 @@ namespace xvk
 		int width, height;
 		glfwGetWindowSize(vk_window, &width, &height);
 		return VkExtent2D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+	}
+
+	float XVKWindow::GetWindowScale() const
+	{
+		float xscale;
+		float yscale;
+		glfwGetWindowContentScale(vk_window, &xscale, &yscale);
+
+		return xscale;
 	}
 
 	const char* XVKWindow::GetKeyName(const int key, const int scancode) const

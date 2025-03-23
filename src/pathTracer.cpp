@@ -44,6 +44,8 @@ void PathTracer::PostTracerInit(const std::vector<vkAsset::AScene*>& sceneList)
 void PathTracer::CreateSwapChain()
 {
 	xvk::ray::ApplicationRT::CreateSwapChain();
+	ui.reset(new editor::UI(GetCommandPool(), GetSwapChain(), GetDepthBuffer(), m_userSettings));
+	rebuildRays = true;
 }
 
 void PathTracer::DeleteSwapChain()
@@ -85,12 +87,17 @@ void PathTracer::Render(VkCommandBuffer commandBuffer, const size_t currentFrame
 	rebuildRays = m_camera.UpdateCamera(1, deltaTime);
 
 	//todo: add path tracing code here
-	//xvk::Application::Render(commandBuffer, currentFrame, imageIndex);
-	xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex);
+	m_userSettings.enableRayTracing ? xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex) :
+		xvk::Application::Render(commandBuffer, currentFrame, imageIndex);
+	ui->Render(commandBuffer, GetSwapChainFrameBuffer(currentFrame));
 }
 
 void PathTracer::OnKey(int key, int scancode, int action, int mods)
 {
+	if (ui->WantsToCaptureKeyboard())
+	{
+		return;
+	}
 	if (action == GLFW_PRESS)
 	{
 		if (key == GLFW_KEY_ESCAPE)
@@ -104,11 +111,19 @@ void PathTracer::OnKey(int key, int scancode, int action, int mods)
 
 void PathTracer::OnCursorPosition(double xpos, double ypos)
 {
+	if (ui->WantsToCaptureMouse())
+	{
+		return;
+	}
 	rebuildRays = m_camera.OnCursorPosition(xpos, ypos);
 }
 
 void PathTracer::OnMouseButton(int button, int action, int mods)
 {
+	if (ui->WantsToCaptureMouse())
+	{
+		return;
+	}
 	rebuildRays = m_camera.OnMouseButton(button, action, mods);
 }
 
@@ -139,11 +154,11 @@ vkAsset::UniformBufferObject PathTracer::GetUniformBufferObject(VkExtent2D exten
 	ubo.projection[1][1] *= -1;//flip y axis to fit vulkan
 	ubo.modeViewInverse = glm::inverse(ubo.modelView);
 	ubo.projectionInverse = glm::inverse(ubo.projection);
-	ubo.spp = m_userSettings.spp;
+	ubo.spp = spp;
 	ubo.totalNumberOfSamples = totalSamples;
 	ubo.numberOfBounces = m_userSettings.numberOfBounces;
 	ubo.randomSeed = 1;
-	ubo.hasSkyBox = true;
+	ubo.hasSkyBox = m_userSettings.enableSkyLighting;
 
 	return ubo;
 }

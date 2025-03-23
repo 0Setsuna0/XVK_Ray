@@ -5,7 +5,7 @@
 #include "Asset/Scene.h"
 #include "Editor/UserSettings.h"
 #include "Editor/Camera.h"
-
+#include "Editor/UI.h"
 #include <memory>
 
 class PathTracer final: public xvk::ray::ApplicationRT
@@ -45,6 +45,9 @@ private:
 	
 	//ray tracing settings
 	uint32_t spp;
-	uint32_t totalSamples;
-	bool rebuildRays;
+	uint32_t totalSamples{};
+	bool rebuildRays{};
+
+	//ui
+	std::unique_ptr<editor::UI> ui;
 };

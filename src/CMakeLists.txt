@@ -4,6 +4,7 @@ file(GLOB src_files_vulkan_raytracing ${CMAKE_SOURCE_DIR}/src/Vulkan/RayTracing/
 file(GLOB src_files_utility ${CMAKE_SOURCE_DIR}/src/Utility/*.cpp ${CMAKE_SOURCE_DIR}/src/Utility/*.h)
 file(GLOB src_files_asset ${CMAKE_SOURCE_DIR}/src/Asset/*.cpp ${CMAKE_SOURCE_DIR}/src/Asset/*.h)
 file(GLOB src_files_editor ${CMAKE_SOURCE_DIR}/src/Editor/*.cpp ${CMAKE_SOURCE_DIR}/src/Editor/*.h)
+file(GLOB src_files_imgui ${CMAKE_SOURCE_DIR}/3rd/imgui/*.cpp ${CMAKE_SOURCE_DIR}/3rd/imgui/*.h)
 
 
 source_group("Main" FILES ${src_files})
@@ -12,6 +13,7 @@ source_group("VulkanRT" FILES ${src_files_vulkan_raytracing})
 source_group("Utility" FILES ${src_files_utility})
 source_group("Asset" FILES ${src_files_asset})
 source_group("Editor" FILES ${src_files_editor})
+source_group("imgui" FILES &{src_files_imgui})
 
 add_executable(ReSTIR_PT 
   ${src_files} 
@@ -19,7 +21,8 @@ add_executable(ReSTIR_PT
   ${src_files_vulkan_raytracing} 
   ${src_files_utility}
   ${src_files_asset}
-  ${src_files_editor})
+  ${src_files_editor}
+  ${src_files_imgui})
 
 target_link_libraries(ReSTIR_PT PUBLIC Vulkan::Vulkan)
 target_link_libraries(ReSTIR_PT PUBLIC glfw)

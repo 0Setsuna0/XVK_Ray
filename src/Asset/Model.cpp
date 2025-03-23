@@ -81,7 +81,18 @@ namespace vkAsset
 			{
 				materials[i].baseColorTextureIndex = -1;
 			}
-			materials[i].materialModel = AMaterial::Enum::Lambertian;
+			if (glTFMaterial.values.find("name") != glTFMaterial.values.end()) {
+				materials[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
+			}
+			if (glTFMaterial.name == "light")
+			{
+				materials[i].materialModel = AMaterial::Enum::DiffuseLight;
+			}
+			else
+			{
+				materials[i].materialModel = AMaterial::Enum::Lambertian;
+			}
+
 		}
 	}
 

@@ -72,7 +72,7 @@ RayPayload ScatterDieletric(Material m, float3 direction, float3 normal, float2 
 // Diffuse Light
 RayPayload ScatterDiffuseLight(Material m, float t, inout uint seed)
 {
-	float4 colorAndDistance = float4(m.baseColor.rgb, t);
+	float4 colorAndDistance = float4(m.baseColor.rgb * 10, t);
 	float4 scatter = float4(1, 0, 0, 0);
 
 	RayPayload rayPayload;
