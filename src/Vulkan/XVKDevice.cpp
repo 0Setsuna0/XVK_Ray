@@ -98,7 +98,7 @@ namespace xvk
 		}
 		else
 		{
-			createInfo.enabledExtensionCount = 0;
+			createInfo.enabledLayerCount = 0;
 		}
 
 		VULKAN_RUNTIME_CHECK(vkCreateDevice(vk_physicalDevice, &createInfo, nullptr, &vk_logicalDevice), "Fail to create logical device");
