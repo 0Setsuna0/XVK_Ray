@@ -36,6 +36,15 @@ namespace xvk::ray
 			const std::vector<Entry>& rayHitPrograms
 		);
 
+		XVKShaderBindingManager(
+			const XVKRayFuncManager& deviceFunc,
+			VkPipeline rayTracingPipeline,
+			const XVKRayTracingContext& rayTracingContext,
+			const std::vector<Entry>& rayGenPrograms,
+			const std::vector<Entry>& rayMissPrograms,
+			const std::vector<Entry>& rayHitPrograms
+		);
+
 		~XVKShaderBindingManager();
 
 		const XVKBuffer& GetBuffer() const { return *buffer; }

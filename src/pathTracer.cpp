@@ -148,9 +148,10 @@ vkAsset::UniformBufferObject PathTracer::GetUniformBufferObject(VkExtent2D exten
 	vkAsset::UniformBufferObject ubo{};
 	glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	glm::mat4 model2 = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	ubo.modelView = m_camera.GetViewMatrix() * model2 * model;
+	//ubo.modelView = m_camera.GetViewMatrix() * model2 * model;
+	ubo.modelView = m_camera.GetViewMatrix();
 	ubo.projection = glm::perspective(glm::radians(m_userSettings.fov), 
-		static_cast<float>(extent.width) / static_cast<float>(extent.height), 0.1f, 1000.0f);
+		static_cast<float>(extent.width) / static_cast<float>(extent.height), 0.001f, 1000.0f);
 	ubo.projection[1][1] *= -1;//flip y axis to fit vulkan
 	ubo.modeViewInverse = glm::inverse(ubo.modelView);
 	ubo.projectionInverse = glm::inverse(ubo.projection);

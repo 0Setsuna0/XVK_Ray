@@ -1536,7 +1536,7 @@
         1.0,
         1.0
       ],
-      "name": "Lights",
+      "name": "light",
       "pbrMetallicRoughness": {
         "baseColorFactor": [
           0.8,

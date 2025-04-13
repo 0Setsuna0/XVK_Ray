@@ -101,6 +101,55 @@ namespace xvk::ray
 		bufferMemory->UnmapMemory();
 	}
 
+	XVKShaderBindingManager::XVKShaderBindingManager(
+		const XVKRayFuncManager& deviceFunc,
+		VkPipeline rayTracingPipeline,
+		const XVKRayTracingContext& rayTracingContext,
+		const std::vector<Entry>& rayGenPrograms,
+		const std::vector<Entry>& rayMissPrograms,
+		const std::vector<Entry>& rayHitPrograms)
+		:rayGenEntrySize(GetEntrySize(rayTracingContext, rayGenPrograms)),
+		rayMissEntrySize(GetEntrySize(rayTracingContext, rayMissPrograms)),
+		rayHitGroupEntrySize(GetEntrySize(rayTracingContext, rayHitPrograms)),
+		rayGenOffset(0),
+		rayMissOffset(rayGenPrograms.size()* rayGenEntrySize),
+		rayHitGroupOffset(rayMissOffset + rayMissPrograms.size() * rayMissEntrySize),
+		rayGenSize(rayGenPrograms.size()* rayGenEntrySize),
+		rayMissSize(rayMissPrograms.size()* rayMissEntrySize),
+		rayHitGroupSize(rayHitPrograms.size()* rayHitGroupEntrySize)
+	{
+		const size_t totalSize = rayGenPrograms.size() * rayGenEntrySize +
+			rayMissPrograms.size() * rayMissEntrySize +
+			rayHitPrograms.size() * rayHitGroupEntrySize;
+
+		const auto& device = rayTracingContext.GetDevice();
+
+		buffer.reset(new XVKBuffer(device, totalSize, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR));
+		bufferMemory.reset(new XVKDeviceMemory(buffer->AllocateMemory(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
+
+		//generate table
+		const uint32_t handleSize = rayTracingContext.ShaderGroupHandleSize();
+		const size_t groupCount = rayGenPrograms.size() + rayMissPrograms.size() + rayHitPrograms.size();
+
+		std::vector<uint8_t> shaderHandleStorage(groupCount * handleSize);
+
+		deviceFunc.vkGetRayTracingShaderGroupHandlesKHR(
+			device.Handle(),
+			rayTracingPipeline,
+			0,
+			groupCount,
+			shaderHandleStorage.size(),
+			shaderHandleStorage.data());
+
+		auto* pData = static_cast<uint8_t*>(bufferMemory->MapMemory(0, totalSize));
+
+		pData += CopyShaderData(pData, rayTracingContext, rayGenPrograms, rayGenEntrySize, shaderHandleStorage.data());
+		pData += CopyShaderData(pData, rayTracingContext, rayMissPrograms, rayMissEntrySize, shaderHandleStorage.data());
+		CopyShaderData(pData, rayTracingContext, rayHitPrograms, rayHitGroupEntrySize, shaderHandleStorage.data());
+
+		bufferMemory->UnmapMemory();
+	}
+
 	XVKShaderBindingManager::~XVKShaderBindingManager()
 	{
 		buffer.reset();

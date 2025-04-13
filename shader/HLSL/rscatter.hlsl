@@ -19,13 +19,17 @@ RayPayload ScatterLambertian(Material m, float3 direction, float3 normal, float2
 {
 	bool isScattered = dot(direction, normal) < 0;
     float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].SampleLevel(LinearSampler, texCoord, 0) : float4(1, 1, 1, 1);
-    float4 colorAndDistance = float4(m.baseColor.rgb * texColor.rgb, t);
+	//float4 colorAndDistance = float4(m.baseColor.rgb * texColor.rgb, t);
+	//float4 texColor = (m.baseColorTextureIndex >= 0) ? float4(0.722, 0.514, 0.043, 1) : float4(1, 1, 1, 1);
+	float4 colorAndDistance = (m.baseColorTextureIndex >= 0) ? float4(texColor.rgb, t) : float4(m.baseColor.rgb, t);
+
 	float4 scatter = float4(normal + RandomInUnitSphere(seed), isScattered ? 1 : 0);
 
 	RayPayload rayPayload;
 	rayPayload.ColorAndDistance = colorAndDistance;
 	rayPayload.ScatterDirection = scatter;
 	rayPayload.RandomSeed = seed;
+	rayPayload.Normal = normal;
 	return rayPayload;
 }
 
@@ -43,6 +47,7 @@ RayPayload ScatterMetallic(Material m, float3 direction, float3 normal, float2 t
 	rayPayload.ColorAndDistance = colorAndDistance;
 	rayPayload.ScatterDirection = scatter;
 	rayPayload.RandomSeed = seed;
+    rayPayload.Normal = normal;
 	return rayPayload;
 }
 
@@ -66,19 +71,23 @@ RayPayload ScatterDieletric(Material m, float3 direction, float3 normal, float2 
 	rayPayload.ColorAndDistance = colorAndDistance;
 	rayPayload.ScatterDirection = scatter;
 	rayPayload.RandomSeed = seed;
+    rayPayload.Normal = normal;
 	return rayPayload;
 }
 
 // Diffuse Light
-RayPayload ScatterDiffuseLight(Material m, float t, inout uint seed)
+RayPayload ScatterDiffuseLight(Material m, float t, float3 normal, float2 texCoord, inout uint seed)
 {
-	float4 colorAndDistance = float4(m.baseColor.rgb * 10, t);
+    float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].SampleLevel(LinearSampler, texCoord, 0) : float4(1, 1, 1, 1);
+    float4 colorAndDistance = (m.baseColorTextureIndex >= 0) ? float4(texColor.rgb * 4, t) : float4(m.baseColor.rgb * 4, t);
+
 	float4 scatter = float4(1, 0, 0, 0);
 
 	RayPayload rayPayload;
 	rayPayload.ColorAndDistance = colorAndDistance;
 	rayPayload.ScatterDirection = scatter;
 	rayPayload.RandomSeed = seed;
+    rayPayload.Normal = normal;
 	return rayPayload;
 }
 
@@ -95,12 +104,13 @@ RayPayload Scatter(Material m, float3 direction, float3 normal, float2 texCoord,
 		case MaterialDielectric:
 			return ScatterDieletric(m, normDirection, normal, texCoord, t, seed);
 		case MaterialDiffuseLight:
-			return ScatterDiffuseLight(m, t, seed);
-	}
+            return ScatterDiffuseLight(m, t, normal, texCoord, seed);
+    }
 	
 	RayPayload rayPayload;
 	rayPayload.ColorAndDistance = float4(0, 0, 0, 0);
 	rayPayload.ScatterDirection = float4(0, 0, 0, 0);
 	rayPayload.RandomSeed = seed;
+    rayPayload.Normal = normal;
 	return rayPayload;
 }

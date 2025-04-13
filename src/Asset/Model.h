@@ -50,6 +50,7 @@ namespace vkAsset
 			uint32_t width;
 			uint32_t height;
 			unsigned char* bufferData;
+			std::string url;
 		};
 
 		struct Texture {

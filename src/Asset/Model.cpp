@@ -45,12 +45,13 @@ namespace vkAsset
 			else
 			{
 				bufferSize = glTFImage.image.size();
-				buffer = new unsigned char[bufferSize];
-				memcpy(buffer, glTFImage.image.data(), bufferSize); 
+				images[i].bufferData = new unsigned char[bufferSize];
+				images[i].url = glTFImage.uri;
+				memcpy(images[i].bufferData, glTFImage.image.data(), bufferSize);
 			}
 
 
-			images[i].bufferData = buffer;
+			//images[i].bufferData = buffer;
 		}
 	}
 
@@ -81,9 +82,6 @@ namespace vkAsset
 			{
 				materials[i].baseColorTextureIndex = -1;
 			}
-			if (glTFMaterial.values.find("name") != glTFMaterial.values.end()) {
-				materials[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
-			}
 			if (glTFMaterial.name == "light")
 			{
 				materials[i].materialModel = AMaterial::Enum::DiffuseLight;
@@ -100,24 +98,21 @@ namespace vkAsset
 		std::vector<uint32_t>& indexBuffer, std::vector<AVertex>& vertexBuffer)
 	{
 		AglTFModel::Node* node = new AglTFModel::Node{};
-		node->matrix = glm::mat4(1.0f);
 		node->parent = parent;
+		node->name = inputNode.name;
 
-		if (inputNode.translation.size() == 3) 
-		{
+		node->matrix = glm::mat4(1.0f);
+		if (inputNode.translation.size() == 3) {
 			node->matrix = glm::translate(node->matrix, glm::vec3(glm::make_vec3(inputNode.translation.data())));
 		}
-		if (inputNode.rotation.size() == 4)
-		{
+		if (inputNode.rotation.size() == 4) {
 			glm::quat q = glm::make_quat(inputNode.rotation.data());
 			node->matrix *= glm::mat4(q);
 		}
-		if (inputNode.scale.size() == 3)
-		{
+		if (inputNode.scale.size() == 3) {
 			node->matrix = glm::scale(node->matrix, glm::vec3(glm::make_vec3(inputNode.scale.data())));
 		}
-		if (inputNode.matrix.size() == 16) 
-		{
+		if (inputNode.matrix.size() == 16) {
 			node->matrix = glm::make_mat4x4(inputNode.matrix.data());
 		};
 
@@ -138,6 +133,12 @@ namespace vkAsset
 				uint32_t firstIndex = static_cast<uint32_t>(indexBuffer.size());
 				uint32_t vertexStart = static_cast<uint32_t>(vertexBuffer.size());
 				uint32_t indexCount = 0;
+				glm::mat4 nodeMatrix = node->matrix;
+				Node* currentParent = node->parent;
+				while (currentParent) {
+					nodeMatrix = currentParent->matrix * nodeMatrix;
+					currentParent = currentParent->parent;
+				}
 				// Vertices
 				{
 					const float* positionBuffer = nullptr;
@@ -169,9 +170,10 @@ namespace vkAsset
 					// Append data to model's vertex buffer
 					for (size_t v = 0; v < vertexCount; v++) {
 						AVertex vert{};
-						vert.pos = glm::vec4(glm::make_vec3(&positionBuffer[v * 3]), 1.0f);
-						vert.normal = glm::normalize(glm::vec3(normalsBuffer ? glm::make_vec3(&normalsBuffer[v * 3]) : glm::vec3(0.0f)));
-						vert.texCoord = texCoordsBuffer ? glm::make_vec2(&texCoordsBuffer[v * 2]) : glm::vec3(0.0f);
+						vert.pos = nodeMatrix * glm::vec4(glm::make_vec3(&positionBuffer[v * 3]), 1.0f);
+						auto tempNormal = glm::transpose(glm::inverse(nodeMatrix)) * glm::vec4(glm::normalize(glm::vec3(normalsBuffer ? glm::make_vec3(&normalsBuffer[v * 3]) : glm::vec3(0.0f))), 1.0f);
+						vert.normal = glm::vec3(tempNormal.x, tempNormal.y, tempNormal.z);
+						vert.texCoord = texCoordsBuffer ? glm::make_vec2(&texCoordsBuffer[v * 2]) : glm::vec2(0.0f);
 						//vert.color = glm::vec3(1.0f);
 						vert.materialIndex = glTFPrimitive.material;
 						vertexBuffer.push_back(vert);

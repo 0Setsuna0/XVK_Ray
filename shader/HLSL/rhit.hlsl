@@ -56,7 +56,7 @@ void main(inout RayPayload payload : SV_RayPayload, in HitAttributes attribs : S
 
     // 计算命中点属性
     float3 barycentrics = float3(1.0 - attribs.Barycentrics.x - attribs.Barycentrics.y, attribs.Barycentrics.x, attribs.Barycentrics.y);
-    float3 normal = v0.Normal;
+    float3 normal = normalize(Mix(v0.Normal, v1.Normal, v2.Normal, barycentrics));
     float2 texCoord = Mix(v0.TexCoord, v1.TexCoord, v2.TexCoord, barycentrics);
 
     // 散射计算

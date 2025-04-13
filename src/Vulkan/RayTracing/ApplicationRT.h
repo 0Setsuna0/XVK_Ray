@@ -30,18 +30,6 @@ namespace xvk::ray
 		void CreateSwapChain() override;
 		void DeleteSwapChain() override;
 		void Render(VkCommandBuffer commandBuffer, size_t currentFrame, uint32_t imageIndex) override;
-	
-	public:
-		
-		ApplicationRT(const WindowState& windowState, VkPresentModeKHR presentMode,
-			bool enableValidationLayer);
-		~ApplicationRT();
-
-	private:
-		
-		void CreateBLAS(VkCommandBuffer commandBuffer);
-		void CreateTLAS(VkCommandBuffer commandBuffer);
-		void CreateOutputImage();
 
 		std::unique_ptr<XVKRayFuncManager> m_deviceFunc;
 		std::unique_ptr<XVKRayTracingContext> m_rayTracingContext;
@@ -68,6 +56,18 @@ namespace xvk::ray
 		std::unique_ptr<XVKImage> m_outputImage;
 		std::unique_ptr<XVKImageView> m_outputImageView;
 		std::unique_ptr<XVKDeviceMemory> m_outputImageMemory;
+	
+	public:
+		
+		ApplicationRT(const WindowState& windowState, VkPresentModeKHR presentMode,
+			bool enableValidationLayer);
+		~ApplicationRT();
+
+	private:
+		
+		void CreateBLAS(VkCommandBuffer commandBuffer);
+		void CreateTLAS(VkCommandBuffer commandBuffer);
+		void CreateOutputImage();
 
 		std::unique_ptr<XVKRayTracingPipeline> m_rayTracingPipeline;
 		std::unique_ptr<XVKShaderBindingManager> m_shaderBindings;

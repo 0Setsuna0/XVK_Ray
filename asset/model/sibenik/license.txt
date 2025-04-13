@@ -1,0 +1,11 @@
+Model Information:
+* title:	Sibenik-cathedral-vray-fbx
+* source:	https://sketchfab.com/3d-models/sibenik-cathedral-vray-fbx-7dae769f0321475f9ac8264d5d296ba6
+* author:	home films (https://sketchfab.com/thegreatbob3)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Sibenik-cathedral-vray-fbx" (https://sketchfab.com/3d-models/sibenik-cathedral-vray-fbx-7dae769f0321475f9ac8264d5d296ba6) by home films (https://sketchfab.com/thegreatbob3) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

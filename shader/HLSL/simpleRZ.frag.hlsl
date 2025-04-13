@@ -32,7 +32,7 @@ PS_OUTPUT main(PS_INPUT input)
 
     if (textureId >= 0)
     {
-        c *= TextureSamplers[textureId].Sample(TextureSamplersSampler, input.FragTexCoord).rgb;
+        c = TextureSamplers[textureId].Sample(TextureSamplersSampler, input.FragTexCoord).rgb;
     }
 
     output.OutColor = float4(c, 1.0f);

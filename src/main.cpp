@@ -113,7 +113,7 @@ int main()
 		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR);
 
 		vkAsset::AglTFModel model;
-		model.loadglTFFile(ASSET_DIR"model/cb2/scene.gltf");
+		model.loadglTFFile(ASSET_DIR"model/classroom/scene.gltf");
 		std::vector<vkAsset::AglTFModel*> models = { &model };
 		vkAsset::AScene scene(app.GetCommandPool(), models);
 		std::vector<vkAsset::AScene*> sceneList = { &scene };

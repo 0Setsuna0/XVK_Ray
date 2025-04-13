@@ -46,8 +46,8 @@ void main()
             RandomFloat(pixelRandomSeed),
             RandomFloat(pixelRandomSeed));
         float2 pixel = launchID + pixelOffset;
-        float2 uv = (pixel / launchSize) * 2.0 - 1.0;//texture uv range[-1, 1]
-
+        float2 uv = (pixel / (float2)launchSize) * 2.0 - 1.0; //texture uv range[-1, 1]
+       
         float2 offset = RandomInUnitDisk(rayPayload.RandomSeed);
         float4 origin = mul(uniformBufferObject.modelViewInverse, float4(0, 0, 0, 1)); 
         float4 target = mul(uniformBufferObject.projectionInverse, float4(uv.x, uv.y, 1, 1));
@@ -66,8 +66,8 @@ void main()
             RayDesc ray;
             ray.Origin = origin.xyz;
             ray.Direction = direction.xyz;
-            ray.TMin = 0.001;
-            ray.TMax = 10000.0f;
+            ray.TMin = 0.01f;
+            ray.TMax = 1000.0f;
             
             // µ÷ÓÃTraceRay
             TraceRay(
@@ -90,6 +90,7 @@ void main()
                 break;
 
             origin.xyz += t * direction.xyz;
+            origin.xyz += rayPayload.Normal * 1e-3;
             direction.xyz = rayPayload.ScatterDirection.xyz;
 
         }

@@ -1051,7 +1051,7 @@
     },
     {
       "alphaMode": "BLEND",
-      "name": "Windows",
+      "name": "light",
       "pbrMetallicRoughness": {
         "baseColorFactor": [
           0.8,
