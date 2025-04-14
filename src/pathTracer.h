@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vulkan/RayTracing/ApplicationRT.h"
+#include "Vulkan/RayTracing/ApplicationReSTIRGI.h"
 #include "Asset/Model.h"
 #include "Asset/Scene.h"
 #include "Editor/UserSettings.h"
@@ -8,7 +9,7 @@
 #include "Editor/UI.h"
 #include <memory>
 
-class PathTracer final: public xvk::ray::ApplicationRT
+class PathTracer final: public xvk::ray::ApplicationReSTIRGI
 {
 public:
 	PathTracer(const editor::UserSettings& userSettings, const xvk::WindowState& windowConfig, 

@@ -31,19 +31,14 @@ VS_OUTPUT main(VS_INPUT input)
 
     Material m = MaterialArray[input.materialIndex];
 
-    // 计算顶点位置
     output.Position = mul(uniformBufferObject.projection, mul(uniformBufferObject.modelView, float4(input.position, 1.0f)));
 
-    // 传递颜色
     output.FragColor = m.baseColor.xyz;
 
-    // 计算法线（注意：这里需要 ModelInverseTranspose 矩阵来正确变换法线）
     output.FragNormal = float4(input.normal, 0.0f).xyz;
 
-    // 传递纹理坐标
     output.FragTexCoord = input.texCoord;
 
-    // 传递材质索引
     output.FragMaterialIndex = input.materialIndex;
 
     return output;

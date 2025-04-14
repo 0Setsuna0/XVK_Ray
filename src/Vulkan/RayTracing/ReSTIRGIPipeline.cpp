@@ -164,28 +164,31 @@ namespace xvk::ray
 		const XVKShaderModule restirGIOutputShader(device, SHADER_DIR"HLSL/ReSTIRGI/restirGIOutput.spv");
 	
 		//define all shader stages (更新后)
-		std::vector<VkPipelineShaderStageCreateInfo> allShaderStages = {
-			// 共用Shader
-			rayMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),          // [0] 主Miss
-			rayClosetHitShader.CreateShaderStage(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),    // [1] Closest Hit
-			rayAnyHitShader.CreateShaderStage(VK_SHADER_STAGE_ANY_HIT_BIT_KHR),     // [2] Any Hit (新增)
-			rayShadowMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),    // [3] 阴影Miss (新增)
-
-			// RayGen Shaders
-			restirGIInitialSampleShader.CreateShaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR),   // [4] Initial
-			restirGITemporalReuseShader.CreateShaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR),   // [5] Temporal
-			restirGISpatialReuseShader.CreateShaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR)     // [6] Spatial
+		std::vector<VkPipelineShaderStageCreateInfo> initialSampleStages = {
+			// RayGen Shader + Ray Miss Shader/Ray Shadow Miss Shader + Ray Closet Hit Shader/Ray Any Hit Shader
+			restirGIInitialSampleShader.CreateShaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR),
+			rayMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),       
+			rayShadowMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),  
+			rayClosetHitShader.CreateShaderStage(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),    
+			rayAnyHitShader.CreateShaderStage(VK_SHADER_STAGE_ANY_HIT_BIT_KHR)     
 		};
 
-		// 定义Shader索引常量
-		enum ReSTIRShaderIndices {
-			MIS_SHADER_IDX = 0,
-			CLOSEST_HIT_IDX = 1,
-			ANY_HIT_IDX = 2,
-			SHADOW_MIS_IDX = 3,
-			INITIAL_RAYGEN_IDX = 4,
-			TEMPORAL_RAYGEN_IDX = 5,
-			SPATIAL_RAYGEN_IDX = 6
+		std::vector<VkPipelineShaderStageCreateInfo> temporalReuseStages = {
+			// RayGen Shader + Ray Miss Shader/Ray Shadow Miss Shader + Ray Closet Hit Shader/Ray Any Hit Shader
+			restirGITemporalReuseShader.CreateShaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR),
+			rayMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),       
+			rayShadowMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),  
+			rayClosetHitShader.CreateShaderStage(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),    
+			rayAnyHitShader.CreateShaderStage(VK_SHADER_STAGE_ANY_HIT_BIT_KHR)     
+		};
+
+		std::vector<VkPipelineShaderStageCreateInfo> spatialReuseStages = {
+			// RayGen Shader + Ray Miss Shader/Ray Shadow Miss Shader + Ray Closet Hit Shader/Ray Any Hit Shader
+			restirGISpatialReuseShader.CreateShaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR),
+			rayMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),       
+			rayShadowMissShader.CreateShaderStage(VK_SHADER_STAGE_MISS_BIT_KHR),  
+			rayClosetHitShader.CreateShaderStage(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),    
+			rayAnyHitShader.CreateShaderStage(VK_SHADER_STAGE_ANY_HIT_BIT_KHR)     
 		};
 
 		//define shader groups 
@@ -198,75 +201,75 @@ namespace xvk::ray
 		initialSampleGroup.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
 		initialSampleGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
 		initialSampleGroup.pNext = nullptr;
-		initialSampleGroup.generalShader = INITIAL_RAYGEN_IDX;
+		initialSampleGroup.generalShader = 0;
 		initialSampleGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
 		initialSampleGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
 		initialSampleGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
 		initialGroups.push_back(initialSampleGroup);
-		restirgiInitialSampleIndex = INITIAL_RAYGEN_IDX;
+		restirgiInitialSampleIndex = 0;
 
 		//temporal reuse shader group
 		VkRayTracingShaderGroupCreateInfoKHR temporalReuseGroup = {};
 		temporalReuseGroup.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
 		temporalReuseGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
 		temporalReuseGroup.pNext = nullptr;
-		temporalReuseGroup.generalShader = TEMPORAL_RAYGEN_IDX;
+		temporalReuseGroup.generalShader = 0;
 		temporalReuseGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
 		temporalReuseGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
 		temporalReuseGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
 		temporalGroups.push_back(temporalReuseGroup);
-		restirgiTemporalReuseIndex = TEMPORAL_RAYGEN_IDX;
+		restirgiTemporalReuseIndex = 0;
 
 		//spatial reuse shader group
 		VkRayTracingShaderGroupCreateInfoKHR spatialReuseGroup = {};
 		spatialReuseGroup.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
 		spatialReuseGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
 		spatialReuseGroup.pNext = nullptr;
-		spatialReuseGroup.generalShader = SPATIAL_RAYGEN_IDX;
+		spatialReuseGroup.generalShader = 0;
 		spatialReuseGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
 		spatialReuseGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
 		spatialReuseGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
 		spatialGroups.push_back(spatialReuseGroup);
-		restirgiSpatialReuseIndex = SPATIAL_RAYGEN_IDX;
+		restirgiSpatialReuseIndex = 0;
 
 		//miss/hit shader group
 		VkRayTracingShaderGroupCreateInfoKHR missGroupInfo = {};
 		missGroupInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
 		missGroupInfo.pNext = nullptr;
 		missGroupInfo.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-		missGroupInfo.generalShader = MIS_SHADER_IDX;
+		missGroupInfo.generalShader = 1;
 		missGroupInfo.closestHitShader = VK_SHADER_UNUSED_KHR;
 		missGroupInfo.anyHitShader = VK_SHADER_UNUSED_KHR;
 		missGroupInfo.intersectionShader = VK_SHADER_UNUSED_KHR;
 		initialGroups.push_back(missGroupInfo);
 		temporalGroups.push_back(missGroupInfo);
 		spatialGroups.push_back(missGroupInfo);
-		rayMissIndex = MIS_SHADER_IDX;
+		rayMissIndex = 1;
 
 		VkRayTracingShaderGroupCreateInfoKHR shadowMissGroup = {};
 		shadowMissGroup.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
 		shadowMissGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-		shadowMissGroup.generalShader = SHADOW_MIS_IDX;
+		shadowMissGroup.generalShader = 2;
 		shadowMissGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
 		shadowMissGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
 		shadowMissGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
 		initialGroups.push_back(shadowMissGroup);
 		temporalGroups.push_back(shadowMissGroup);
 		spatialGroups.push_back(shadowMissGroup);
-		rayShadowMissIndex = SHADOW_MIS_IDX;
+		rayShadowMissIndex = 2;
 
 		VkRayTracingShaderGroupCreateInfoKHR triangleHitGroupInfo = {};
 		triangleHitGroupInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
 		triangleHitGroupInfo.pNext = nullptr;
 		triangleHitGroupInfo.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
 		triangleHitGroupInfo.generalShader = VK_SHADER_UNUSED_KHR;
-		triangleHitGroupInfo.closestHitShader = CLOSEST_HIT_IDX;
+		triangleHitGroupInfo.closestHitShader = 3;
 		triangleHitGroupInfo.anyHitShader = VK_SHADER_UNUSED_KHR;
 		triangleHitGroupInfo.intersectionShader = VK_SHADER_UNUSED_KHR;
 		initialGroups.push_back(triangleHitGroupInfo);
 		temporalGroups.push_back(triangleHitGroupInfo);
 		spatialGroups.push_back(triangleHitGroupInfo);
-		rayTriangleHitGroupIndex = CLOSEST_HIT_IDX;
+		rayTriangleHitGroupIndex = 3;
 
 		VkRayTracingShaderGroupCreateInfoKHR anyHitGroup = {};
 		anyHitGroup.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
@@ -274,12 +277,12 @@ namespace xvk::ray
 		anyHitGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
 		anyHitGroup.generalShader = VK_SHADER_UNUSED_KHR;
 		anyHitGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
-		anyHitGroup.anyHitShader = ANY_HIT_IDX;
+		anyHitGroup.anyHitShader = 4;
 		anyHitGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
 		initialGroups.push_back(anyHitGroup);
 		temporalGroups.push_back(anyHitGroup);
 		spatialGroups.push_back(anyHitGroup);
-		rayAnyHitIndex = ANY_HIT_IDX;
+		rayAnyHitIndex = 4;
 
 		//create pipeline
 		//initial sample pipeline
@@ -287,8 +290,8 @@ namespace xvk::ray
 		initialSamplepipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
 		initialSamplepipelineInfo.pNext = nullptr;
 		initialSamplepipelineInfo.flags = 0;
-		initialSamplepipelineInfo.stageCount = static_cast<uint32_t>(allShaderStages.size());
-		initialSamplepipelineInfo.pStages = allShaderStages.data();
+		initialSamplepipelineInfo.stageCount = static_cast<uint32_t>(initialSampleStages.size());
+		initialSamplepipelineInfo.pStages = initialSampleStages.data();
 		initialSamplepipelineInfo.groupCount = static_cast<uint32_t>(initialGroups.size());
 		initialSamplepipelineInfo.pGroups = initialGroups.data();
 		initialSamplepipelineInfo.maxPipelineRayRecursionDepth = 2;
@@ -302,8 +305,8 @@ namespace xvk::ray
 		temporalReusePipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
 		temporalReusePipelineInfo.pNext = nullptr;
 		temporalReusePipelineInfo.flags = 0;
-		temporalReusePipelineInfo.stageCount = static_cast<uint32_t>(allShaderStages.size());
-		temporalReusePipelineInfo.pStages = allShaderStages.data();
+		temporalReusePipelineInfo.stageCount = static_cast<uint32_t>(temporalReuseStages.size());
+		temporalReusePipelineInfo.pStages = temporalReuseStages.data();
 		temporalReusePipelineInfo.groupCount = static_cast<uint32_t>(temporalGroups.size());
 		temporalReusePipelineInfo.pGroups = temporalGroups.data();
 		temporalReusePipelineInfo.maxPipelineRayRecursionDepth = 1;
@@ -317,8 +320,8 @@ namespace xvk::ray
 		spatialReusePipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
 		spatialReusePipelineInfo.pNext = nullptr;
 		spatialReusePipelineInfo.flags = 0;
-		spatialReusePipelineInfo.stageCount = static_cast<uint32_t>(allShaderStages.size());
-		spatialReusePipelineInfo.pStages = allShaderStages.data();
+		spatialReusePipelineInfo.stageCount = static_cast<uint32_t>(spatialReuseStages.size());
+		spatialReusePipelineInfo.pStages = spatialReuseStages.data();
 		spatialReusePipelineInfo.groupCount = static_cast<uint32_t>(spatialGroups.size());
 		spatialReusePipelineInfo.pGroups = spatialGroups.data();
 		spatialReusePipelineInfo.maxPipelineRayRecursionDepth = 1;
@@ -327,6 +330,18 @@ namespace xvk::ray
 		spatialReusePipelineInfo.basePipelineIndex = 0;
 		VULKAN_RUNTIME_CHECK(deviceFunc.vkCreateRayTracingPipelinesKHR(device.Handle(), nullptr,
 			nullptr, 1, &spatialReusePipelineInfo, nullptr, &vk_restirGI_spatialReusePipeline), "create spatial reuse pipeline");
+	
+		//output pipeline
+		VkPipelineShaderStageCreateInfo ouptputStage = restirGIOutputShader.CreateShaderStage(VK_SHADER_STAGE_COMPUTE_BIT);
+		VkComputePipelineCreateInfo outputPipelineInfo = {};
+		outputPipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+		outputPipelineInfo.stage = ouptputStage;
+		outputPipelineInfo.layout = xvk_pipelineLayout->Handle(); 
+		outputPipelineInfo.flags = 0;
+		outputPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+		outputPipelineInfo.basePipelineIndex = -1;
+		VULKAN_RUNTIME_CHECK(vkCreateComputePipelines(device.Handle(), VK_NULL_HANDLE, 1,
+			&outputPipelineInfo, nullptr, &vk_restirGI_outputPipeline), "create output compute pipeline");
 	}
 
 	XVKReSTIRGIPipeline::~XVKReSTIRGIPipeline()

@@ -22,6 +22,9 @@ namespace xvk::ray
 		~ApplicationReSTIRGI();
 
 	private:
+		std::vector<VkStridedDeviceAddressRegionKHR> GetShaderBindingTableRegions(
+			const std::unique_ptr<XVKShaderBindingManager>& sbt) const;
+
 		std::unique_ptr<XVKBuffer> m_restir_initialSamplesBuffer;
 		std::unique_ptr<XVKDeviceMemory> m_restir_initialSamplesBufferMemory;
 
@@ -33,6 +36,14 @@ namespace xvk::ray
 
 		std::unique_ptr<XVKBuffer> m_restir_spatialReservoirBuffer;
 		std::unique_ptr<XVKDeviceMemory> m_restir_spatialReservoirBufferMemory;
+
+		std::unique_ptr<XVKImage> m_restir_accumulatedImage;
+		std::unique_ptr<XVKImageView> m_restir_accumulatedImageView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_accumulatedImageMemory;
+
+		std::unique_ptr<XVKImage> m_restir_outputImage;
+		std::unique_ptr<XVKImageView> m_restir_outputImageView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_outputImageMemory;
 
 		std::unique_ptr<XVKReSTIRGIPipeline> m_restirgiPipeline;
 

@@ -22,7 +22,7 @@ const bool EnableValidationLayers =
 
 PathTracer::PathTracer(const editor::UserSettings& userSettings, const xvk::WindowState& windowState,
 	VkPresentModeKHR presentMode)
-	:ApplicationRT(windowState, presentMode, EnableValidationLayers),
+	:ApplicationReSTIRGI(windowState, presentMode, EnableValidationLayers),
 	m_userSettings(userSettings)
 {
 	
