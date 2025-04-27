@@ -1,7 +1,6 @@
-#include "random.hlsl"
 #include "raypayload.hlsl"
 #include "uniformBufferObject.hlsl"
-
+#include "sampling.hlsl"
 //resource bindings
 
 RaytracingAccelerationStructure scene : register(t0);
@@ -11,7 +10,7 @@ cbuffer UniformBuffer : register(b3)
 {
     UniformBufferObject uniformBufferObject;
 };
-
+StructuredBuffer<Material> Materials : register(t6);
 uint2 GetLaunchID()
 {
     return DispatchRaysIndex().xy;
@@ -33,7 +32,7 @@ void main()
     //rayPayload.ScatterDirection = float4(0, 0, 0, 0);
     rayPayload.RandomSeed = InitRandomSeed(
         InitRandomSeed(launchID.x, launchID.y),
-        uniformBufferObject.totalNumberOfSamples
+        uniformBufferObject.reuse ? uniformBufferObject.currentFrame : uniformBufferObject.totalNumberOfSamples
     );
 
     float3 pixelColor = 0;
@@ -54,10 +53,10 @@ void main()
         float4 direction = mul(uniformBufferObject.modelViewInverse, float4(normalize(target.xyz), 0));
 
         float3 rayColor = 1;
-        
+
         for (uint bounce = 0; bounce <= uniformBufferObject.numberOfBounces; bounce++)
         {
-            if(bounce == uniformBufferObject.numberOfBounces)
+            if (bounce == uniformBufferObject.numberOfBounces)
             {
                 rayColor = 0;
                 break;
@@ -68,7 +67,7 @@ void main()
             ray.Direction = direction.xyz;
             ray.TMin = 0.01f;
             ray.TMax = 1000.0f;
-            
+
             // 调用TraceRay
             TraceRay(
                 scene, // 加速结构
@@ -88,9 +87,36 @@ void main()
 
             if (t < 0 || !isScattered)
                 break;
-
+            
+            //if (rayPayload.MaterialIndex == -1)
+            //{
+            //    tempPixelColor += throughput * rayPayload.SkyColor;
+            //    break;
+            //}
+            
+            //Material mat = Materials[rayPayload.MaterialIndex];
+            
+            //float pdf = 0;
+            //float cos_theta = 0;
+            //float3 wi = 0;
+            //float3 wo = -direction.xyz;
+            //uint2 seedin = uint2(rayPayload.RandomSeed, rayPayload.RandomSeed);
+            
+            //float3 f = SampleBSDF(rayPayload.Normal, rayPayload.UV, mat, wo,
+            //    true, wi, pdf, cos_theta, seedin);
+            
+            ////update throughput
+            //if (mat.materialModel == MaterialDiffuseLight && bounce != 2)
+            //{
+            //    tempPixelColor += throughput * SampleDiffuseLight(mat, uv);
+            //    break;
+            //}
+            //if (mat.materialModel != MaterialDiffuseLight)
+            //{
+            //    throughput *= f * cos_theta / pdf;
+            //}
+            //direction.xyz = wi;
             origin.xyz += t * direction.xyz;
-            origin.xyz += rayPayload.Normal * 1e-3;
             direction.xyz = rayPayload.ScatterDirection.xyz;
 
         }

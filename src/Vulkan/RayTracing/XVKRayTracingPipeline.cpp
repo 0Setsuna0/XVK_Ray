@@ -42,11 +42,11 @@ namespace xvk::ray
 			// Vertex buffer, Index buffer, Material buffer, Offset buffer
 			{4, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
 			{5, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
-			{6, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
+			{6, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR},
 			{7, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
 
 			// Textures and image samplers
-			{8, static_cast<uint32_t>(scene.GetTextureSamplers().size()), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
+			{8, static_cast<uint32_t>(scene.GetTextureSamplers().size()), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR},
 		};
 
 		xvk_descriptorSetManager.reset(new XVKDescriptorSetManager(device, descriptorBindings, uniformBuffers.size()));
@@ -184,7 +184,7 @@ namespace xvk::ray
 		pipelineInfo.pStages = shaderStages.data();
 		pipelineInfo.groupCount = static_cast<uint32_t>(groups.size());
 		pipelineInfo.pGroups = groups.data();
-		pipelineInfo.maxPipelineRayRecursionDepth = 1;
+		pipelineInfo.maxPipelineRayRecursionDepth = 2;
 		pipelineInfo.layout = xvk_pipelineLayout->Handle();
 		pipelineInfo.basePipelineHandle = nullptr;
 		pipelineInfo.basePipelineIndex = 0;

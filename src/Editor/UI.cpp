@@ -29,8 +29,9 @@ namespace editor
 	UI::UI(xvk::XVKCommandPool& commandPool,
 		const xvk::XVKSwapChain& swapChain,
 		const xvk::XVKDepthBuffer& depthBuffer,
-		UserSettings& userSettings)
-		:userSettings(userSettings)
+		UserSettings& userSettings,
+		Status& status)
+		:userSettings(userSettings), status(status)
 	{
 		const auto& device = swapChain.GetDevice();
 		const auto& window = device.Instance().GetWindow();
@@ -160,20 +161,50 @@ namespace editor
 
 			ImGui::Text("Scene");
 			ImGui::Separator();
-			ImGui::NewLine();
+			ImGui::Combo("SceneList", &GetUserSettings().sceneIndex, sceneList.data(), static_cast<int>(sceneList.size()));
 
-			ImGui::Text("Ray Tracing");
+			ImGui::Text("Statistics (%dx%d):", status.WindowSize.width, status.WindowSize.height);
 			ImGui::Separator();
-			ImGui::Checkbox("Enable ray tracing", &GetUserSettings().enableRayTracing);
-			ImGui::Checkbox("Enable ray accumulation", &GetUserSettings().enableRayAccumulation);
+			ImGui::Text("Frame rate: %.1f fps", GetUserSettings().renderingMode == 2 ? status.FrameRate * 3: status.FrameRate);
+			ImGui::Text("One frame cost:  %.1f ms", GetUserSettings().renderingMode == 2 ? status.OneFrameTimeCost / 3 : status.OneFrameTimeCost);
+
+			ImGui::Text("Rendering Mode");
+			ImGui::Separator();
+			ImGui::Combo("Rendering Mode", &GetUserSettings().renderingMode, renderModes.data(), static_cast<int>(renderModes.size()));
 			uint32_t minSpp = 1;
 			uint32_t maxSpp = 100;
-			ImGui::SliderScalar("Spp", ImGuiDataType_U32, &GetUserSettings().spp, &minSpp, &maxSpp);
 			uint32_t minBounces = 1;
 			uint32_t maxBounces = 32;
-			ImGui::SliderScalar("Bounces", ImGuiDataType_U32, &GetUserSettings().numberOfBounces, &minBounces, &maxBounces);
-			ImGui::Checkbox("Enable sky lighting", &GetUserSettings().enableSkyLighting);
-			ImGui::NewLine();
+			switch (GetUserSettings().renderingMode)
+			{
+			case 0: 
+				//rasterization
+				break;
+
+			case 1: 
+				//path tracing
+				ImGui::Checkbox("Enable ray accumulation", &GetUserSettings().enableRayAccumulation);
+				ImGui::SliderScalar("Spp", ImGuiDataType_U32, &GetUserSettings().spp, &minSpp, &maxSpp);
+				ImGui::SliderScalar("Bounces", ImGuiDataType_U32, &GetUserSettings().numberOfBounces, &minBounces, &maxBounces);
+				ImGui::Checkbox("Enable sky lighting", &GetUserSettings().enableSkyLighting);
+				GetUserSettings().enableReuse = false;
+				ImGui::NewLine();
+				break;
+
+			case 2: 
+				// ReSTIR GI
+				ImGui::Checkbox("Enable sky lighting", &GetUserSettings().enableSkyLighting);
+				ImGui::SliderScalar("Bounces", ImGuiDataType_U32, &GetUserSettings().numberOfBounces, &minBounces, &maxBounces);
+				GetUserSettings().spp = 6;
+				GetUserSettings().numberOfBounces = 4;
+				GetUserSettings().enableRayAccumulation = false;
+				GetUserSettings().enableReuse = true;
+				break;
+			case 3:
+				break;
+			default:
+				break;
+			}
 		}
 		ImGui::End();
 	}

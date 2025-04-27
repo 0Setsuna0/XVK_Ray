@@ -10,4 +10,6 @@ struct UniformBufferObject
 	uint numberOfBounces;
 	uint randomSeed;
     bool hasSkyBox;
+    bool reuse;
+    uint currentFrame;
 };

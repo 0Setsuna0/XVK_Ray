@@ -1,4 +1,4 @@
-#include "pathTracer.h"
+﻿#include "pathTracer.h"
 #include "Editor/Camera.h"
 #include "Editor/UserSettings.h"
 #include "Vulkan/XVKInstance.h"
@@ -23,9 +23,8 @@ const bool EnableValidationLayers =
 PathTracer::PathTracer(const editor::UserSettings& userSettings, const xvk::WindowState& windowState,
 	VkPresentModeKHR presentMode)
 	:ApplicationReSTIRGI(windowState, presentMode, EnableValidationLayers),
-	m_userSettings(userSettings)
+	m_userSettings(userSettings), currentFrameTotal(0)
 {
-	
 }
 
 PathTracer::~PathTracer()
@@ -44,12 +43,14 @@ void PathTracer::PostTracerInit(const std::vector<vkAsset::AScene*>& sceneList)
 void PathTracer::CreateSwapChain()
 {
 	xvk::ray::ApplicationRT::CreateSwapChain();
-	ui.reset(new editor::UI(GetCommandPool(), GetSwapChain(), GetDepthBuffer(), m_userSettings));
+	ui.reset(new editor::UI(GetCommandPool(), GetSwapChain(), GetDepthBuffer(), m_userSettings, m_status));
 	rebuildRays = true;
+	m_justRecreatedSwapChain = true;
 }
 
 void PathTracer::DeleteSwapChain()
 {
+	ui.reset();
 	xvk::ray::ApplicationRT::DeleteSwapChain();
 }
 
@@ -75,7 +76,7 @@ void PathTracer::DrawFrame()
 
 	spp = glm::clamp(m_userSettings.maxSpp - totalSamples, 0u, m_userSettings.spp);
 	totalSamples += spp;
-
+	currentFrameTotal = (currentFrameTotal + 1) % 10000;
 	xvk::Application::DrawFrame();
 }
 void PathTracer::Render(VkCommandBuffer commandBuffer, const size_t currentFrame, const uint32_t imageIndex)
@@ -87,9 +88,32 @@ void PathTracer::Render(VkCommandBuffer commandBuffer, const size_t currentFrame
 	rebuildRays = m_camera.UpdateCamera(1, deltaTime);
 
 	//todo: add path tracing code here
-	m_userSettings.enableRayTracing ? xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex) :
+	//m_userSettings.enableRayTracing ? xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex) :
+	//	xvk::Application::Render(commandBuffer, currentFrame, imageIndex);
+	switch (m_userSettings.renderingMode)
+	{
+	case 0:
 		xvk::Application::Render(commandBuffer, currentFrame, imageIndex);
-	ui->Render(commandBuffer, GetSwapChainFrameBuffer(currentFrame));
+		break;
+	case 1:
+		xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex);
+		break;
+	case 2:
+		xvk::ray::ApplicationRT::Render(commandBuffer, currentFrame, imageIndex);
+		break;
+	case 3:
+		//xvk::ray::ApplicationReSTIRGI::Render(commandBuffer, currentFrame, imageIndex);
+		break;
+	default:
+		break;
+	}
+
+	m_status.WindowSize = GetSwapChain().GetExtent();
+	m_status.FrameRate = 1.0f / deltaTime;
+	m_status.OneFrameTimeCost = deltaTime * 1000.0f;
+
+	ui->Render(commandBuffer, GetSwapChainFrameBuffer(imageIndex));
+	
 }
 
 void PathTracer::OnKey(int key, int scancode, int action, int mods)
@@ -160,6 +184,7 @@ vkAsset::UniformBufferObject PathTracer::GetUniformBufferObject(VkExtent2D exten
 	ubo.numberOfBounces = m_userSettings.numberOfBounces;
 	ubo.randomSeed = 1;
 	ubo.hasSkyBox = m_userSettings.enableSkyLighting;
-
+	ubo.currentFrame = static_cast<int>(currentFrameTotal / 3) * 3;
+	ubo.reuse = m_userSettings.enableReuse;
 	return ubo;
 }

@@ -150,7 +150,9 @@ namespace xvk
 		}
 
 		const auto commandBuffer = m_commandBuffers->Begin(currentFrame);
+
 		Render(commandBuffer, currentFrame, imageIndex);
+
 		m_commandBuffers->End(currentFrame);
 
 		UpdateUniformBuffer();
@@ -230,6 +232,7 @@ namespace xvk
 		
 			uint32_t vertexOffset = 0;
 			uint32_t indexOffset = 0;
+
 			for(const auto& model : m_scene->GetModels())
 			{
 				vkCmdDrawIndexed(commandBuffer, model->NumIndices(), 1, indexOffset, vertexOffset, 0);

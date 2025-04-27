@@ -11,6 +11,9 @@ namespace editor
 		bool enableRayTracing;
 		bool enableRayAccumulation;
 		bool enableSkyLighting;
+		bool enableReuse;
+
+		int renderingMode;
 
 		uint32_t spp;
 		uint32_t numberOfBounces;
@@ -24,6 +27,13 @@ namespace editor
 
 		inline const static float fovMin = 10.0f;
 		inline const static float fovMax = 100.0f;
+	};
+
+	struct Status
+	{
+		VkExtent2D WindowSize;
+		float FrameRate;
+		float OneFrameTimeCost;
 	};
 }
 

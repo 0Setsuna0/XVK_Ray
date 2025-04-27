@@ -86,7 +86,7 @@ namespace xvk::ray
 		instance.instanceShaderBindingTableRecordOffset = hitGroupId;
 		instance.accelerationStructureReference = address;
 		instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
-	
+
 		std::memcpy(&instance.transform, &transform, sizeof(instance.transform));
 
 		return instance;

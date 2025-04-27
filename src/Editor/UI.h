@@ -20,7 +20,8 @@ namespace editor
 		UI(xvk::XVKCommandPool& commandPool,
 			const xvk::XVKSwapChain& swapChain,
 			const xvk::XVKDepthBuffer& depthBuffer,
-			UserSettings& userSettings);
+			UserSettings& userSettings,
+			Status& status);
 		~UI();
 
 		void Render(VkCommandBuffer commandBuffer, const xvk::XVKFrameBuffer& frameBuffer);
@@ -37,5 +38,8 @@ namespace editor
 		std::unique_ptr<xvk::XVKDescriptorPool> xvk_descriptorPool;
 		std::unique_ptr<xvk::XVKRenderPass> xvk_renderPass;
 		UserSettings& userSettings;
+		Status& status;
+		std::vector<const char*> renderModes = { "Rasterization", "Path Tracing", "ReSTIR GI"};
+		std::vector<const char*> sceneList = { "classroom", "cornel box", "white_living" };
 	};
 }

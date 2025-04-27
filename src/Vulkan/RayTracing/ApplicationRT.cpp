@@ -175,7 +175,7 @@ namespace xvk::ray
 		copyRegion.extent = { extent.width, extent.height, 1 };
 
 		vkCmdCopyImage(commandBuffer, m_outputImage->Handle(),
-			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, GetSwapChain().GetImages()[currentFrame],
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, GetSwapChain().GetImages()[imageIndex],
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
 		XVKImage::Insert(commandBuffer, GetSwapChain().GetImages()[imageIndex], subresourceRange, 

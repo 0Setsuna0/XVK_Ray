@@ -25,6 +25,8 @@ namespace vkAsset
 		uint32_t numberOfBounces;
 		uint32_t randomSeed;
 		uint32_t hasSkyBox;
+		uint32_t reuse;
+		uint32_t currentFrame;
 	};
 
 	class AUniformBuffer

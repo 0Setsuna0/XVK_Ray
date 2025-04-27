@@ -37,6 +37,7 @@ private:
 
 	editor::UserSettings m_userSettings;
 	editor::UserSettings m_userSettingsPrevious;
+	editor::Status m_status;
 	editor::Camera m_camera;
 	
 	double lastTime = 0;
@@ -48,7 +49,8 @@ private:
 	uint32_t spp;
 	uint32_t totalSamples{};
 	bool rebuildRays{};
-
+	bool m_justRecreatedSwapChain = false;
 	//ui
 	std::unique_ptr<editor::UI> ui;
+	uint32_t currentFrameTotal;
 };

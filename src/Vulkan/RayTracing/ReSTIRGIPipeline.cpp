@@ -46,16 +46,19 @@ namespace xvk::ray
 			// Vertex buffer, Index buffer, Material buffer, Offset buffer
 			{4, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
 			{5, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
-			{6, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
+			{6, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
 			{7, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
 
 			// Textures and image samplers
-			{8, static_cast<uint32_t>(scene.GetTextureSamplers().size()), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
+			{8, static_cast<uint32_t>(scene.GetTextureSamplers().size()), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 
+				VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
 
 			// ReSTIR GI
 			{9,  1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR}, // Initial Samples
 			{10, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR}, // Temporal
-			{11, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR}  // Spatial
+			{11, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR},  // Spatial
+			{12, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR }, // Initial Samples
+
 		};
 
 		xvk_descriptorSetManager.reset(new XVKDescriptorSetManager(device, descriptorBindings, uniformBuffers.size()));
@@ -122,6 +125,11 @@ namespace xvk::ray
 			VkDescriptorBufferInfo initialSampleBufferInfo = {};
 			initialSampleBufferInfo.buffer = initialSampleBuffer->Handle();
 			initialSampleBufferInfo.range = VK_WHOLE_SIZE;
+
+			VkDescriptorBufferInfo initialOldSampleBufferInfo = {};
+			initialSampleBufferInfo.buffer = initialOldSampleBuffer->Handle();
+			initialSampleBufferInfo.range = VK_WHOLE_SIZE;
+
 			//temporal buffer
 			VkDescriptorBufferInfo temporalBufferInfo = {};
 			temporalBufferInfo.buffer = temporalResevoirBuffer->Handle();
@@ -144,7 +152,8 @@ namespace xvk::ray
 				descriptorSets.Bind(i, 8, *imageInfos.data(), imageInfos.size()),
 				descriptorSets.Bind(i, 9, initialSampleBufferInfo),
 				descriptorSets.Bind(i, 10, temporalBufferInfo),
-				descriptorSets.Bind(i, 11, spatialBufferInfo)
+				descriptorSets.Bind(i, 11, spatialBufferInfo),
+				descriptorSets.Bind(i, 12, initialOldSampleBufferInfo)
 			};
 
 			descriptorSets.UpdateDescriptors(descriptorWrites);
@@ -154,14 +163,14 @@ namespace xvk::ray
 
 		//create shader modules
 		const XVKShaderModule rayMissShader(device, SHADER_DIR"HLSL/ReSTIRGI/rmiss.spv");
-		const XVKShaderModule rayClosetHitShader(device, SHADER_DIR"HLSL/ReSTIRGI/rhit.spv");
-		const XVKShaderModule rayAnyHitShader(device, SHADER_DIR"HLSL/ReSTIRGI/ranyhit.spv");
-		const XVKShaderModule rayShadowMissShader(device, SHADER_DIR"HLSL/ReSTIRGI/rshadowMiss.spv");
+		const XVKShaderModule rayClosetHitShader(device, SHADER_DIR"HLSL/ReSTIRGI/rchit.spv");
+		const XVKShaderModule rayAnyHitShader(device, SHADER_DIR"HLSL/ReSTIRGI/rahit.spv");
+		const XVKShaderModule rayShadowMissShader(device, SHADER_DIR"HLSL/ReSTIRGI/rmiss_shadow.spv");
 
-		const XVKShaderModule restirGIInitialSampleShader(device, SHADER_DIR"HLSL/ReSTIRGI/restirGIInitialSample.spv");
-		const XVKShaderModule restirGITemporalReuseShader(device, SHADER_DIR"HLSL/ReSTIRGI/restirGITemporalReuse.spv");
-		const XVKShaderModule restirGISpatialReuseShader(device, SHADER_DIR"HLSL/ReSTIRGI/restirGISpatialReuse.spv");
-		const XVKShaderModule restirGIOutputShader(device, SHADER_DIR"HLSL/ReSTIRGI/restirGIOutput.spv");
+		const XVKShaderModule restirGIInitialSampleShader(device, SHADER_DIR"HLSL/ReSTIRGI/rgen_initialSample.spv");
+		const XVKShaderModule restirGITemporalReuseShader(device, SHADER_DIR"HLSL/ReSTIRGI/rgen_temporalReuse.spv");
+		const XVKShaderModule restirGISpatialReuseShader(device, SHADER_DIR"HLSL/ReSTIRGI/rgen_spatialReuse.spv");
+		//const XVKShaderModule restirGIOutputShader(device, SHADER_DIR"HLSL/ReSTIRGI/restirGIOutput.spv");
 	
 		//define all shader stages (¸üÐÂºó)
 		std::vector<VkPipelineShaderStageCreateInfo> initialSampleStages = {
@@ -332,7 +341,7 @@ namespace xvk::ray
 			nullptr, 1, &spatialReusePipelineInfo, nullptr, &vk_restirGI_spatialReusePipeline), "create spatial reuse pipeline");
 	
 		//output pipeline
-		VkPipelineShaderStageCreateInfo ouptputStage = restirGIOutputShader.CreateShaderStage(VK_SHADER_STAGE_COMPUTE_BIT);
+		/*VkPipelineShaderStageCreateInfo ouptputStage = restirGIOutputShader.CreateShaderStage(VK_SHADER_STAGE_COMPUTE_BIT);
 		VkComputePipelineCreateInfo outputPipelineInfo = {};
 		outputPipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 		outputPipelineInfo.stage = ouptputStage;
@@ -341,7 +350,7 @@ namespace xvk::ray
 		outputPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		outputPipelineInfo.basePipelineIndex = -1;
 		VULKAN_RUNTIME_CHECK(vkCreateComputePipelines(device.Handle(), VK_NULL_HANDLE, 1,
-			&outputPipelineInfo, nullptr, &vk_restirGI_outputPipeline), "create output compute pipeline");
+			&outputPipelineInfo, nullptr, &vk_restirGI_outputPipeline), "create output compute pipeline");*/
 	}
 
 	XVKReSTIRGIPipeline::~XVKReSTIRGIPipeline()

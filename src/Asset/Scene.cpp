@@ -26,8 +26,8 @@ namespace vkAsset
 		uint32_t numTextures = 0;
 
 		//defaultModelViewMatrix = glm::lookAt(glm::vec3(0, -3, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
-		defaultModelViewMatrix = glm::lookAt(glm::vec3(-3.5, 2, 0), glm::vec3(2, 1, 0), glm::vec3(0, 1, 0));//classroom
-		//defaultModelViewMatrix = glm::lookAt(glm::vec3(0, 1, 3), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));//cb2
+		//defaultModelViewMatrix = glm::lookAt(glm::vec3(-3.5, 2, 0), glm::vec3(2, 1, 0), glm::vec3(0, 1, 0));//classroom
+		defaultModelViewMatrix = glm::lookAt(glm::vec3(0, 1, 3), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));//cb2
 		for (const auto& model : models)
 		{
 			uint32_t indexOffset = indices.size();

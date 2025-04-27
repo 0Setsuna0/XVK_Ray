@@ -40,7 +40,7 @@ namespace xvk::ray
 		InitReSTIRGITracer();
 
 		m_restirgiPipeline.reset(new XVKReSTIRGIPipeline(*m_deviceFunc, GetSwapChain(), m_tlas[0],
-			*m_accumulatedImageView, *m_outputImageView, GetUniformBuffers(), *m_scene, m_restir_initialSamplesBuffer, m_restir_initialOldSamplesBuffer,
+			*m_restir_accumulatedImageView, *m_restir_outputImageView, GetUniformBuffers(), *m_scene, m_restir_initialSamplesBuffer, m_restir_initialOldSamplesBuffer,
 			m_restir_temporalReservoirBuffer, m_restir_spatialReservoirBuffer));
 
 		// === Initial Sample Pipeline ===
@@ -201,25 +201,25 @@ namespace xvk::ray
 			&spatialReuseSBTRegions[2], &spatialReuseSBTRegions[3],
 			extent.width, extent.height, 1);
 
-		// === Barrier: Spatial Reuse (RT) ¡ú Output (Compute) ===
-		{
-			VkMemoryBarrier barrier{};
-			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-			barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		//// === Barrier: Spatial Reuse (RT) ¡ú Output (Compute) ===
+		//{
+		//	VkMemoryBarrier barrier{};
+		//	barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		//	barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		//	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-			vkCmdPipelineBarrier(commandBuffer,
-				VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				0, 1, &barrier, 0, nullptr, 0, nullptr);
-		}
+		//	vkCmdPipelineBarrier(commandBuffer,
+		//		VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+		//		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		//		0, 1, &barrier, 0, nullptr, 0, nullptr);
+		//}
 
-		// === Output Image Resolve (Compute) ===
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-			m_restirgiPipeline->OutputHandle());
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-			m_restirgiPipeline->GetPipelineLayout().Handle(), 0, 1, descriptorSets, 0, nullptr);
-		vkCmdDispatch(commandBuffer, (extent.width + 7) / 8, (extent.height + 7) / 8, 1);
+		//// === Output Image Resolve (Compute) ===
+		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+		//	m_restirgiPipeline->OutputHandle());
+		//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+		//	m_restirgiPipeline->GetPipelineLayout().Handle(), 0, 1, descriptorSets, 0, nullptr);
+		//vkCmdDispatch(commandBuffer, (extent.width + 7) / 8, (extent.height + 7) / 8, 1);
 
 		// Transition images for presenting
 		XVKImage::Insert(commandBuffer, m_restir_outputImage->Handle(), subresourceRange,
@@ -288,7 +288,7 @@ namespace xvk::ray
 			GetSwapChain().GetExtent().width * GetSwapChain().GetExtent().height * sizeof(ReSTIRGISample),
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
-		m_restir_initialOldSamplesBufferMemory.reset(new XVKDeviceMemory(m_restir_initialSamplesBuffer->AllocateMemory(
+		m_restir_initialOldSamplesBufferMemory.reset(new XVKDeviceMemory(m_restir_initialOldSamplesBuffer->AllocateMemory(
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 
 		m_restir_temporalReservoirBuffer.reset(new XVKBuffer(GetDevice(), 

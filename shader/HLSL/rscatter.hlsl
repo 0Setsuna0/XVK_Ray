@@ -79,7 +79,7 @@ RayPayload ScatterDieletric(Material m, float3 direction, float3 normal, float2 
 RayPayload ScatterDiffuseLight(Material m, float t, float3 normal, float2 texCoord, inout uint seed)
 {
     float4 texColor = (m.baseColorTextureIndex >= 0) ? TextureSamplers[m.baseColorTextureIndex].SampleLevel(LinearSampler, texCoord, 0) : float4(1, 1, 1, 1);
-    float4 colorAndDistance = (m.baseColorTextureIndex >= 0) ? float4(texColor.rgb * 4, t) : float4(m.baseColor.rgb * 4, t);
+    float4 colorAndDistance = (m.baseColorTextureIndex >= 0) ? float4(texColor.rgb * 2, t) : float4(m.baseColor.rgb * 2, t);
 
 	float4 scatter = float4(1, 0, 0, 0);
 

@@ -774,7 +774,7 @@
     },
     {
       "doubleSided": true,
-      "name": "School_blackboards",
+      "name": "light",
       "occlusionTexture": {
         "index": 15
       },

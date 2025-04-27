@@ -49,15 +49,23 @@ int main()
 		userSettings.showSettings = true;
 		userSettings.enableSkyLighting = false;
 
-		xvk::WindowState windowState{ "test", 1920, 1080, true, false };
+		xvk::WindowState windowState{ "XVKRay", 1920, 1080, true, false };
 		
 		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR);
 
 		vkAsset::AglTFModel model;
 		model.loadglTFFile(ASSET_DIR"model/classroom/scene.gltf");
+		vkAsset::AglTFModel model1;
+		model1.loadglTFFile(ASSET_DIR"model/cb2/scene.gltf");
+		vkAsset::AglTFModel model2;
+		model2.loadglTFFile(ASSET_DIR"model/white_living/scene.gltf");
 		std::vector<vkAsset::AglTFModel*> models = { &model };
+		std::vector<vkAsset::AglTFModel*> models1 = { &model1 };
+		std::vector<vkAsset::AglTFModel*> models2 = { &model2 };
 		vkAsset::AScene scene(app.GetCommandPool(), models);
-		std::vector<vkAsset::AScene*> sceneList = { &scene };
+		vkAsset::AScene scene1(app.GetCommandPool(), models1);
+		vkAsset::AScene scene2(app.GetCommandPool(), models2);
+		std::vector<vkAsset::AScene*> sceneList = { &scene, &scene1, &scene2 };
 		app.PostTracerInit(sceneList);
 		app.Run();
 
