@@ -5,7 +5,7 @@ file(GLOB src_files_utility ${CMAKE_SOURCE_DIR}/src/Utility/*.cpp ${CMAKE_SOURCE
 file(GLOB src_files_asset ${CMAKE_SOURCE_DIR}/src/Asset/*.cpp ${CMAKE_SOURCE_DIR}/src/Asset/*.h)
 file(GLOB src_files_editor ${CMAKE_SOURCE_DIR}/src/Editor/*.cpp ${CMAKE_SOURCE_DIR}/src/Editor/*.h)
 file(GLOB src_files_imgui ${CMAKE_SOURCE_DIR}/3rd/imgui/*.cpp ${CMAKE_SOURCE_DIR}/3rd/imgui/*.h)
-
+file(GLOB src_files_rendering ${CMAKE_SOURCE_DIR}/src/Rendering/*.cpp ${CMAKE_SOURCE_DIR}/src/Rendering/*.h)
 
 source_group("Main" FILES ${src_files})
 source_group("Vulkan" FILES ${src_files_vulkan})

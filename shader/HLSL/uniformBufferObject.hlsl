@@ -1,4 +1,3 @@
-
 struct UniformBufferObject
 {
     float4x4 modelView;

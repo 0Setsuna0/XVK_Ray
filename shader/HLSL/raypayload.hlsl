@@ -1,11 +1,12 @@
+#ifndef RAY_PAYLOAD_H
+#define RAY_PAYLOAD_H
+
 struct [raypayload] RayPayload
 {
-    float4 ColorAndDistance; // 允许TraceRay返回该值
-    float4 ScatterDirection; // 允许TraceRay返回该值
-    uint RandomSeed; // 允许TraceRay返回该值
-    float3 Position;
-    float3 Normal;
-    float2 UV;
-    uint MaterialIndex;
-    float3 SkyColor;
+    float3 Position : read(caller) : write(caller, closesthit);
+    float3 Normal : read(caller) : write(caller, closesthit);
+    float2 UV : read(caller) : write(caller, closesthit);
+    int MaterialIndex : read(caller) : write(caller, closesthit, miss);
+    float HitT : read(caller) : write(caller, closesthit, miss);
 };
+#endif

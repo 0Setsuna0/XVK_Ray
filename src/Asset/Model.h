@@ -64,6 +64,7 @@ namespace vkAsset
 		std::vector<AVertex> vertexBuffer;
 		std::vector<uint32_t> indexBuffer;
 		std::vector<AMaterial> materials;
+		std::vector<uint32_t> lightingMaterialIdx;
 
 		AglTFModel();
 		~AglTFModel();

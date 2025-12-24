@@ -184,7 +184,7 @@ vkAsset::UniformBufferObject PathTracer::GetUniformBufferObject(VkExtent2D exten
 	ubo.numberOfBounces = m_userSettings.numberOfBounces;
 	ubo.randomSeed = 1;
 	ubo.hasSkyBox = m_userSettings.enableSkyLighting;
-	ubo.currentFrame = static_cast<int>(currentFrameTotal / 3) * 3;
+	ubo.currentFrame = currentFrameTotal;
 	ubo.reuse = m_userSettings.enableReuse;
 	return ubo;
 }

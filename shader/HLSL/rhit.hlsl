@@ -1,10 +1,8 @@
-// 启用 Vulkan 光线追踪扩展
-#pragma enable_dxr
-
 // 包含头文件
-#include "rscatter.hlsl"
 #include "vertex.hlsl"
-
+#include "random.hlsl"
+#include "raypayload.hlsl"
+#include "material.hlsl"
 //// 资源绑定
 //[[vk::binding(4, 0)]] 
 //StructuredBuffer<Vertex> VertexArray; // 顶点数据
@@ -44,25 +42,31 @@ void main(inout RayPayload payload : SV_RayPayload, in HitAttributes attribs : S
     uint vertexOffset = offsets.y;
 
     uint primitiveIndex = PrimitiveIndex();
-    int i0 = IndexArray[indexOffset + primitiveIndex * 3 + 0]; // 直接访问索引数据
+    int i0 = IndexArray[indexOffset + primitiveIndex * 3 + 0]; 
     int i1 = IndexArray[indexOffset + primitiveIndex * 3 + 1];
     int i2 = IndexArray[indexOffset + primitiveIndex * 3 + 2];
 
-    Vertex v0 = UnpackVertex(vertexOffset + i0); // 直接访问顶点数据
+    Vertex v0 = UnpackVertex(vertexOffset + i0); 
     Vertex v1 = UnpackVertex(vertexOffset + i1);
     Vertex v2 = UnpackVertex(vertexOffset + i2);
-
-    Material material = Materials[v0.MaterialIndex];
-
+    
     // 计算命中点属性
     float3 barycentrics = float3(1.0 - attribs.Barycentrics.x - attribs.Barycentrics.y, attribs.Barycentrics.x, attribs.Barycentrics.y);
     float3 normal = normalize(Mix(v0.Normal, v1.Normal, v2.Normal, barycentrics));
     float2 texCoord = Mix(v0.TexCoord, v1.TexCoord, v2.TexCoord, barycentrics);
 
     // 散射计算
-    payload = Scatter(material, WorldRayDirection(), normal, texCoord, RayTCurrent(), payload.RandomSeed);
-    payload.Position = Mix(v0.Position, v1.Position, v2.Position, barycentrics);
-    payload.Normal = normal;
+    float3x4 objToWorld = ObjectToWorld3x4();
+    // 变换位置 (Position * Matrix)
+    float3 objPos = Mix(v0.Position, v1.Position, v2.Position, barycentrics);
+    float3 worldPos = mul(objToWorld, float4(objPos, 1.0));
+    float3 worldNrm = mul(float4(normal, 0.0), WorldToObject4x3());
+    // 变换法线 (Normal * Matrix)
+    // 注意：参考代码使用了 gl_WorldToObjectEXT (逆矩阵) 来变换法线，这是对付非均匀缩放的严谨做法。
+    // 如果你没有非均匀缩放，直接用 objToWorld 变换向量(w=0)也行：
+    payload.Position = worldPos;
+    payload.Normal = normalize(worldNrm);
     payload.UV = texCoord;
     payload.MaterialIndex = v0.MaterialIndex;
+    payload.HitT = RayTCurrent();
 }
