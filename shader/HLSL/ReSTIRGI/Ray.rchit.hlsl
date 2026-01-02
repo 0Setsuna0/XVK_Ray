@@ -29,32 +29,33 @@ void main(inout RayPayload payload : SV_RayPayload, in HitAttributes attribs : S
     uint2 offsets = Offsets[InstanceIndex()];
     uint indexOffset = offsets.x;
     uint vertexOffset = offsets.y;
-    
+
     uint primitiveIndex = PrimitiveIndex();
     int i0 = IndexArray[indexOffset + primitiveIndex * 3 + 0];
     int i1 = IndexArray[indexOffset + primitiveIndex * 3 + 1];
     int i2 = IndexArray[indexOffset + primitiveIndex * 3 + 2];
 
-    Vertex v0 = UnpackVertex(vertexOffset + i0); 
+    Vertex v0 = UnpackVertex(vertexOffset + i0);
     Vertex v1 = UnpackVertex(vertexOffset + i1);
     Vertex v2 = UnpackVertex(vertexOffset + i2);
-    
-    BSDFMaterial material = Materials[v0.MaterialIndex];
     
     float3 barycentrics = float3(1.0 - attribs.Barycentrics.x - attribs.Barycentrics.y, attribs.Barycentrics.x, attribs.Barycentrics.y);
     float3 normal = normalize(Mix(v0.Normal, v1.Normal, v2.Normal, barycentrics));
     float2 texCoord = Mix(v0.TexCoord, v1.TexCoord, v2.TexCoord, barycentrics);
 
-    float3 e0 = v2.Position - v0.Position;
-    float3 e1 = v1.Position - v0.Position;
-    
-    payload.Position = Mix(v0.Position, v1.Position, v2.Position, barycentrics);
-    payload.Normal = normal;
+    float3x4 objToWorld = ObjectToWorld3x4();
+    float3 objPos = Mix(v0.Position, v1.Position, v2.Position, barycentrics);
+    float3 worldPos = mul(objToWorld, float4(objPos, 1.0));
+    float3 worldNrm = mul(float4(normal, 0.0), WorldToObject4x3());
+    const float3 e0 = v2.Position - v0.Position;
+    const float3 e1 = v1.Position - v0.Position;
+    const float3 e0t = mul(ObjectToWorld3x4(), float4(e0, 0));
+    const float3 e1t = mul(ObjectToWorld3x4(), float4(e1, 0));
+
+    payload.GeometryNormal = normalize(mul(cross(e0, e1), WorldToObject3x4())).xyz;
+    payload.Position = worldPos;
+    payload.Normal = normalize(worldNrm);
     payload.UV = texCoord;
     payload.MaterialIndex = v0.MaterialIndex;
-    payload.TriangleIndex = PrimitiveIndex();
-    payload.InstanceIndex = InstanceIndex();
-    payload.Area = length(cross(e0, e1)) * 0.5f;
-    payload.Distance = RayTCurrent();
-    payload.HitKind = HitKind();
+    payload.HitT = RayTCurrent();
 }

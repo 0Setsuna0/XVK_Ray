@@ -9,6 +9,6 @@ cbuffer UniformBuffer : register(b3)
 [shader("miss")]
 void main(inout RayPayload payload : SV_RayPayload)
 {
-    payload.MaterialIndex = -1; // 标记为未命中
+    payload.MaterialIndex = -1;
     payload.HitT = -1.0;
 }

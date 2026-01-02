@@ -35,7 +35,13 @@ namespace xvk::ray
 			const std::unique_ptr<XVKBuffer>& initialSampleBuffer,
 			const std::unique_ptr<XVKBuffer>& initialOldSampleBuffer,
 			const std::unique_ptr<XVKBuffer>& temporalResevoirBuffer,
-			const std::unique_ptr<XVKBuffer>& spatialReservoirBuffer
+			const std::unique_ptr<XVKBuffer>& spatialReservoirBuffer,
+			const XVKImageView& posGBuffer,
+			const XVKImageView& nrmGBuffer,
+			const XVKImageView& matUVGBuffer,
+			const XVKImageView& motionGBuffer,
+			const XVKImageView& posGBufferPrev,
+			const XVKImageView& nrmGBufferPrev
 			);
 
 		~XVKReSTIRGIPipeline();

@@ -37,6 +37,30 @@ namespace xvk::ray
 		std::unique_ptr<XVKBuffer> m_restir_spatialReservoirBuffer;
 		std::unique_ptr<XVKDeviceMemory> m_restir_spatialReservoirBufferMemory;
 
+		std::unique_ptr<XVKImage> m_restir_GBufferPos;
+		std::unique_ptr<XVKImageView> m_restir_GBufferPosView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_GBufferPosMemory;
+
+		std::unique_ptr<XVKImage> m_restir_GBufferNrm;
+		std::unique_ptr<XVKImageView> m_restir_GBufferNrmView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_GBufferNrmMemory;
+
+		std::unique_ptr<XVKImage> m_restir_GBufferMatUV;
+		std::unique_ptr<XVKImageView> m_restir_GBufferMatUVView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_GBufferMatUVMemory;
+
+		std::unique_ptr<XVKImage> m_restir_GBufferMotion;
+		std::unique_ptr<XVKImageView> m_restir_GBufferMotionView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_GBufferMotionMemory;
+
+		std::unique_ptr<XVKImage> m_restir_GBufferPosPrev;
+		std::unique_ptr<XVKImageView> m_restir_GBufferPosPrevView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_GBufferPosPrevMemory;
+
+		std::unique_ptr<XVKImage> m_restir_GBufferNrmPrev;
+		std::unique_ptr<XVKImageView> m_restir_GBufferNrmPrevView;
+		std::unique_ptr<XVKDeviceMemory> m_restir_GBufferNrmPrevMemory;
+
 		std::unique_ptr<XVKImage> m_restir_accumulatedImage;
 		std::unique_ptr<XVKImageView> m_restir_accumulatedImageView;
 		std::unique_ptr<XVKDeviceMemory> m_restir_accumulatedImageMemory;

@@ -25,7 +25,13 @@ namespace xvk::ray
 		const std::unique_ptr<XVKBuffer>& initialSampleBuffer,
 		const std::unique_ptr<XVKBuffer>& initialOldSampleBuffer,
 		const std::unique_ptr<XVKBuffer>& temporalResevoirBuffer,
-		const std::unique_ptr<XVKBuffer>& spatialReservoirBuffer
+		const std::unique_ptr<XVKBuffer>& spatialReservoirBuffer,
+		const XVKImageView& posGBuffer,
+		const XVKImageView& nrmGBuffer,
+		const XVKImageView& matUVGBuffer,
+		const XVKImageView& motionGBuffer,
+		const XVKImageView& posGBufferPrev,
+		const XVKImageView& nrmGBufferPrev
 		)
 		:xvk_swapChain(swapChain)
 	{
@@ -57,8 +63,14 @@ namespace xvk::ray
 			{9,  1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR}, // Initial Samples
 			{10, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR}, // Temporal
 			{11, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR},  // Spatial
-			{12, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR }, // Initial Samples
-
+			// G-Buffer
+			{12, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR}, // pos gbuffer
+			{13, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR}, // nrm gbuffer
+			{14, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR}, // mat and uv gbuffer
+			{15, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR},  // motion gbuffer
+			{16, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR},  // pos prev gbuffer
+			{17, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR},  // nrm prev gbuffer
+			{18, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR}, // Initial old Samples
 		};
 
 		xvk_descriptorSetManager.reset(new XVKDescriptorSetManager(device, descriptorBindings, uniformBuffers.size()));
@@ -126,7 +138,7 @@ namespace xvk::ray
 			initialSampleBufferInfo.buffer = initialSampleBuffer->Handle();
 			initialSampleBufferInfo.range = VK_WHOLE_SIZE;
 
-			VkDescriptorBufferInfo initialOldSampleBufferInfo = {};
+			VkDescriptorBufferInfo initialoldSampleBufferInfo = {};
 			initialSampleBufferInfo.buffer = initialOldSampleBuffer->Handle();
 			initialSampleBufferInfo.range = VK_WHOLE_SIZE;
 
@@ -138,6 +150,31 @@ namespace xvk::ray
 			VkDescriptorBufferInfo spatialBufferInfo = {};
 			spatialBufferInfo.buffer = spatialReservoirBuffer->Handle();
 			spatialBufferInfo.range = VK_WHOLE_SIZE;
+
+			//gbuffers
+			VkDescriptorImageInfo posGBufferInfo = {};
+			posGBufferInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			posGBufferInfo.imageView = posGBuffer.Handle();
+
+			VkDescriptorImageInfo nrmGBufferInfo = {};
+			nrmGBufferInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			nrmGBufferInfo.imageView = nrmGBuffer.Handle();
+
+			VkDescriptorImageInfo matUVGBufferInfo = {};
+			matUVGBufferInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			matUVGBufferInfo.imageView = matUVGBuffer.Handle();
+
+			VkDescriptorImageInfo motionGBufferInfo = {};
+			motionGBufferInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			motionGBufferInfo.imageView = motionGBuffer.Handle();
+
+			VkDescriptorImageInfo posGBufferPrevInfo = {};
+			posGBufferInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			posGBufferInfo.imageView = posGBufferPrev.Handle();
+
+			VkDescriptorImageInfo nrmGBufferPrevInfo = {};
+			nrmGBufferInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+			nrmGBufferInfo.imageView = nrmGBufferPrev.Handle();
 
 			std::vector<VkWriteDescriptorSet> descriptorWrites =
 			{
@@ -153,7 +190,14 @@ namespace xvk::ray
 				descriptorSets.Bind(i, 9, initialSampleBufferInfo),
 				descriptorSets.Bind(i, 10, temporalBufferInfo),
 				descriptorSets.Bind(i, 11, spatialBufferInfo),
-				descriptorSets.Bind(i, 12, initialOldSampleBufferInfo)
+				// Bind G-Buffers
+				descriptorSets.Bind(i, 12, posGBufferInfo),
+				descriptorSets.Bind(i, 13, nrmGBufferInfo),
+				descriptorSets.Bind(i, 14, matUVGBufferInfo),
+				descriptorSets.Bind(i, 15, motionGBufferInfo),
+				descriptorSets.Bind(i, 16, posGBufferInfo),
+				descriptorSets.Bind(i, 17, nrmGBufferInfo),
+				descriptorSets.Bind(i, 18, initialoldSampleBufferInfo)
 			};
 
 			descriptorSets.UpdateDescriptors(descriptorWrites);

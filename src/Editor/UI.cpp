@@ -195,8 +195,6 @@ namespace editor
 				// ReSTIR GI
 				ImGui::Checkbox("Enable sky lighting", &GetUserSettings().enableSkyLighting);
 				ImGui::SliderScalar("Bounces", ImGuiDataType_U32, &GetUserSettings().numberOfBounces, &minBounces, &maxBounces);
-				GetUserSettings().spp = 6;
-				GetUserSettings().numberOfBounces = 4;
 				GetUserSettings().enableRayAccumulation = false;
 				GetUserSettings().enableReuse = true;
 				break;

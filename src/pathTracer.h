@@ -27,7 +27,7 @@ protected:
 	void OnCursorPosition(double xpos, double ypos)override;
 	void OnMouseButton(int button, int action, int mods) override;
 	void OnScroll(double xoffset, double yoffset) override;
-	vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) const override;
+	vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) override;
 
 private:
 	
@@ -39,7 +39,8 @@ private:
 	editor::UserSettings m_userSettingsPrevious;
 	editor::Status m_status;
 	editor::Camera m_camera;
-	
+	glm::mat4 m_viewPrev;
+	glm::mat4 m_projectionPrev;
 	double lastTime = 0;
 	double currentTime = 0;
 

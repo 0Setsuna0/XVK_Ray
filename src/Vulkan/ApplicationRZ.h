@@ -61,7 +61,7 @@ namespace xvk
 		virtual void OnMouseButton(int button, int action, int mods) = 0;
 		virtual void OnScroll(double xoffset, double yoffset) = 0;
 
-		virtual vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) const = 0;
+		virtual vkAsset::UniformBufferObject GetUniformBufferObject(VkExtent2D extent) = 0;
 		void UpdateUniformBuffer();
 		const vkAsset::AScene* m_scene;
 

@@ -1,55 +1,33 @@
-uint InitRandomSeed(uint val0, uint val1)
+uint InitRandomSeed(uint2 pixelCoords, uint2 resolution, uint frameNumber)
 {
-    uint v0 = val0, v1 = val1, s0 = 0;
-
-    [unroll]
-    for (uint n = 0; n < 16; n++)
-    {
-        s0 += 0x9e3779b9;
-        v0 += ((v1 << 4) + 0xa341316c) ^ (v1 + s0) ^ ((v1 >> 5) + 0xc8013ea4);
-        v1 += ((v0 << 4) + 0xad90777d) ^ (v0 + s0) ^ ((v0 >> 5) + 0x7e95761e);
-    }
-
-    return v0;
+    uint seed = dot(pixelCoords, uint2(1, resolution.x)); // 线性化坐标
+    seed = (seed ^ 61) ^ (seed >> 16);
+    seed *= 9;
+    seed = seed ^ (seed >> 4);
+    seed *= 0x27d4eb2d;
+    seed = seed ^ (seed >> 15);
+    return seed * (frameNumber + 1);
 }
-
-uint RandomInt(inout uint seed)
+uint NextRandom(inout uint state)
 {
-    // LCG values from Numerical Recipes
-    return (seed = 1664525 * seed + 1013904223);
+    state = state * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
 }
-
-float RandomFloat(inout uint seed)
+float RandomFloat(inout uint state)
 {
-    //// Float version using bitmask from Numerical Recipes
-    //const uint one = 0x3f800000;
-    //const uint msk = 0x007fffff;
-    //return asfloat(one | (msk & (RandomInt(seed) >> 9))) - 1;
-
-    // Faster version from NVIDIA examples; quality good enough for our use case.
-    return (float(RandomInt(seed) & 0x00FFFFFF) / float(0x01000000));
+    return float(NextRandom(state) & 0x00FFFFFF) / 16777216.0f;
 }
-
-float2 RandomInUnitDisk(inout uint seed)
+float RandomFloatSNorm(inout uint state)
 {
-    while (true)
-    {
-        float2 p = 2 * float2(RandomFloat(seed), RandomFloat(seed)) - 1;
-        if (dot(p, p) < 1)
-        {
-            return p;
-        }
-    }
+    return RandomFloat(state) * 2.0f - 1.0f;
 }
-
-float3 RandomInUnitSphere(inout uint seed)
+float2 RandomInUnitDisk(inout uint state)
 {
-    while (true)
-    {
-        float3 p = 2 * float3(RandomFloat(seed), RandomFloat(seed), RandomFloat(seed)) - 1;
-        if (dot(p, p) < 1)
-        {
-            return p;
-        }
-    }
+    float a = RandomFloat(state) * 6.28318530718; // 角度
+    float r = sqrt(RandomFloat(state)); // 半径 (开根号为了均匀分布)
+    
+    float s, c;
+    sincos(a, s, c);
+    return float2(c * r, s * r);
 }

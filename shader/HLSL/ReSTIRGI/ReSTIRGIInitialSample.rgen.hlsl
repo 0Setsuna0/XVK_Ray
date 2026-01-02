@@ -8,6 +8,13 @@ RWStructuredBuffer<ReSTIRGISample> samples : register(u9);
 //test
 RWTexture2D<float4> AccumulationImage : register(u1);
 RWTexture2D<float4> OutputImage : register(u2);
+//GBuffer
+RWTexture2D<float4> GBufferPos : register(u12);
+RWTexture2D<float4> GNormal : register(u13);
+RWTexture2D<float4> GMatUV : register(u14);
+RWTexture2D<float2> GMotionVector : register(u15);
+RWTexture2D<float4> GBufferPosPrev : register(u16);
+RWTexture2D<float4> GNormalPrev : register(u17);
 
 StructuredBuffer<BSDFMaterial> Materials : register(t6);
 
@@ -30,53 +37,56 @@ void main()
 {
     const uint2 launchID = GetLaunchID();
     const uint2 launchSize = GetLaunchSize();
-   
-    RayPayload rayPayload;
-    rayPayload.RandomSeed = InitRandomSeed(
-        InitRandomSeed(launchID.x, launchID.y),
-        uniformBufferObject.currentFrame
-    );
-
-    uint pixelRandomSeed = uniformBufferObject.randomSeed;
+    uint pixelIndex = launchID.y * launchSize.x + launchID.x;
+    uint rngState = InitRandomSeed(launchID, launchSize, uniformBufferObject.currentFrame);
+    float3 pixelColor = 0;
     float2 pixelOffset = float2(
-            RandomFloat(pixelRandomSeed),
-            RandomFloat(pixelRandomSeed));
-    float2 pixel = launchID + pixelOffset;
-    uint pixelIndex = launchID.y * launchSize.x + launchID.x;//row major
-    
-    uint seed2 = InitRandomSeed(
-        InitRandomSeed(uniformBufferObject.currentFrame, launchID.y + pixelIndex),
-        pixelIndex
-    );
-    
-    float2 uv = (pixel / (float2) launchSize) * 2.0 - 1.0; //texture uv range[-1, 1]
-    
-    //ray generation   
-    float2 offset = RandomInUnitDisk(rayPayload.RandomSeed);
+            RandomFloat(rngState),
+            RandomFloat(rngState));
+    float2 pixel = (float2) launchID + pixelOffset;
+    float2 uv = (pixel / (float2) launchSize) * 2.0 - 1.0;
+
     float4 origin = mul(uniformBufferObject.modelViewInverse, float4(0, 0, 0, 1));
     float4 target = mul(uniformBufferObject.projectionInverse, float4(uv.x, uv.y, 1, 1));
-    float4 direction = mul(uniformBufferObject.modelViewInverse, float4(normalize(target.xyz), 0));
+        
+    float3 direction = normalize(mul(uniformBufferObject.modelViewInverse, float4(normalize(target.xyz), 0)).xyz);
+
+    float3 rayColor = 0;
+    float3 throughput = 1.0;
+    float3 throughput0 = 1.0;
+    float testPDF = 0.0;
+    float2 testUV = 0.0;
+    
     //sample
     float3 x_view = 0;
     float3 n_view = 0;
     float3 x_sample = 0;
     float3 n_sample = 0;
     float3 L_out = 0;
-    float3 f_view = 0;
-    uint mat_idx = -1;
+    float3 f_ = 0;
     float p_q = 0;
-    float3 pixelColor = 0;
-    
-    float3 throughput = float3(1, 1, 1); //used for accumulating bsdf impact
+    uint mat_idx = -1;
+    uint rand_seed = 0;
     float3 t0 = float3(1, 1, 1); //t0 is the bsdf factor of first hitting
-    for (uint bounce = 0; bounce < uniformBufferObject.numberOfBounces; bounce++)
-    {         
+    bool primitiveHitValid = false;
+    for (uint bounce = 0;; bounce++)
+    {   
+        if(bounce == uniformBufferObject.numberOfBounces)
+            break;
         RayDesc ray;
         ray.Origin = origin.xyz;
         ray.Direction = direction.xyz;
-        ray.TMin = 0.01f;
-        ray.TMax = 1000.0f;
+        ray.TMin = 0.0001f;
+        ray.TMax = 10000.0f;
             
+        RayPayload rayPayload;
+        rayPayload.MaterialIndex = -1;
+            
+        rayPayload.Position = float3(0, 0, 0);
+        rayPayload.Normal = float3(0, 0, 0);
+        rayPayload.UV = float2(0, 0);
+        rayPayload.HitT = 0.0f;
+        
         TraceRay(
                 scene, 
                 RAY_FLAG_NONE, 
@@ -87,111 +97,139 @@ void main()
                 ray, 
                 rayPayload); 
             
-        float t = rayPayload.Distance;
         //defined in ray miss shader, material index = -1
 
         bool foundHit = rayPayload.MaterialIndex != -1;
-        if (!foundHit)
+        if (rayPayload.MaterialIndex == -1)
         {
-            float3 val = throughput * rayPayload.SkyColor.rgb;
-            if(bounce <= 1)
+            float3 skyColor = float3(1, 1, 1);  
+            rayColor += uniformBufferObject.hasSkyBox ? throughput0 * throughput * skyColor : 0;
+            L_out += uniformBufferObject.hasSkyBox ? throughput * skyColor : 0;
+            if(bounce == 1)
             {
-                pixelColor += t0 * val;//第二次或者第一次就miss，则直接记录到临时color buffer
-            }
-            else
-            {
-                L_out += val;//否则记录到L_out
+                x_sample = origin.xyz + direction * 1000.0f;
+                n_sample = -direction;
             }
             break;
         }
-        const float3 wo = -direction;
-        float3 pos = rayPayload.Position;
-        float3 normal = rayPayload.Normal;
+        BSDFMaterial mat = Materials[rayPayload.MaterialIndex];
+
+        if (mat.materialModel == BSDFDiffuseLight)
+        {
+            rayColor += throughput0 * throughput * mat.baseColor.rgb * 4.0;
+            L_out += throughput * mat.baseColor.rgb * 4.0;
+            if (bounce == 1)
+            {
+                x_sample = rayPayload.Position;
+                n_sample = rayPayload.Normal;
+            }
+            if (bounce == 0)
+            {
+                x_view = rayPayload.Position;
+                n_view = rayPayload.Normal;
+            }
+            break;
+        }
+
+        float pdf = 0;
+        float cos_theta = 0;
+        float3 wi = 0;
+        float3 wo = -direction;
+        
         if (bounce == 1)
         {
-            x_sample = pos;
-            n_sample = normal;
+            x_sample = rayPayload.Position;
+            n_sample = rayPayload.Normal;
         }
         
         const BSDFMaterial material = Materials[rayPayload.MaterialIndex];
-                
-        //sample direction and update throughput
-        uint2 seed = uint2(rayPayload.RandomSeed, seed2);
-        float pdf, cos_theta;
-        float3 dir = 0;
-        
-        const float3 f = SampleBSDF(
-            normal,
-            rayPayload.UV,
-            material,
-            wo,
-            true,
-            dir,
-            pdf,
-            cos_theta,
-            seed
-        );
+        uint seedForThisBounce = rngState;
+        float3 f = SampleBSDF(rayPayload.Normal, rayPayload.UV, mat, wo,
+                true, wi, pdf, cos_theta, rngState);
              
         if (bounce == 0)
         {
-            x_view = pos;
-            n_view = normal;
+            primitiveHitValid = true;
+            x_view = rayPayload.Position;
+            n_view = rayPayload.Normal;
+            rand_seed = seedForThisBounce;
+            mat_idx = rayPayload.MaterialIndex;
+            throughput0 *= f * cos_theta / pdf;
+            testUV = rayPayload.UV;
             p_q = pdf;
-            f_view = f;
-            mat_idx = material.materialModel;
+            f_ = f;
         }
-        
-        if (material.materialModel == BSDFDiffuseLight)
+        else if (bounce > 0)
         {
-            //f here simply means the light color, just end the loop
-            float3 mat_emissive = SampleDiffuseLight(material, rayPayload.UV);
-            if (bounce != 2 && bounce != 0)
-            {
-                L_out += throughput * mat_emissive * 4;
-            }
-            else if (bounce == 0)
-            {
-                pixelColor += mat_emissive * 4;
-            }
-            break;
+            throughput *= f * cos_theta / pdf;
         }
-        
-        //update throughput
-        if (material.materialModel != BSDFDiffuseLight)
+
+
+        if (bounce > 3)
         {
-            if (bounce > 0)
-            {
-                throughput *= f * abs(cos_theta) / pdf;
-            }
-            else
-            {
-                t0 = f * abs(cos_theta) / pdf;
-            }
+            float p = max(throughput.r, max(throughput.g, throughput.b));
+            if (RandomFloat(rngState) > p)
+                break;
+            throughput *= 1.0 / p;
         }
-        
-        origin.xyz = pos + dir * 1e-3;
-        direction.xyz = dir;
+
+
+        float3 hitPosition = ray.Origin + ray.Direction * rayPayload.HitT;
+
+        float3 offsetDir = dot(wi, rayPayload.Normal) > 0 ? rayPayload.Normal : -rayPayload.Normal;
+        origin.xyz = hitPosition + offsetDir * 0.001f;
+
+        direction = wi;
     }
-    
+    pixelColor += rayColor;
     samples[pixelIndex].x_view = x_view;
     samples[pixelIndex].n_view = n_view;
     samples[pixelIndex].x_sample = x_sample;
     samples[pixelIndex].n_sample = n_sample;
     samples[pixelIndex].L_out = L_out;
-    samples[pixelIndex].f = f_view;
     samples[pixelIndex].materialID = mat_idx;
+    samples[pixelIndex].randSeed = rand_seed;
     samples[pixelIndex].p_q = p_q;
-    float3 tempcolor = pixelColor + t0 * L_out;
-
-    //bool accumulate = uniformBufferObject.spp != uniformBufferObject.totalNumberOfSamples;
-    //float3 accumulatedColor = accumulate ?
-    //    AccumulationImage[launchID].rgb :
-    //    float3(0, 0, 0);
-    //accumulatedColor += tempcolor;
-
-    //float3 finalColor = accumulatedColor / uniformBufferObject.totalNumberOfSamples;
-    //finalColor = sqrt(finalColor);
+    samples[pixelIndex].f = f_;
     
-    AccumulationImage[launchID] = float4(pixelColor, 0);
-    //OutputImage[launchID] = float4(pixelColor, 0);
+    GBufferPosPrev[launchID] = GBufferPos[launchID];
+    GNormalPrev[launchID] = GNormal[launchID];
+
+    if(primitiveHitValid)
+    {
+        GBufferPos[launchID] = float4(x_view, 1.0); // w=1 means valid geometry
+        GNormal[launchID] = float4(n_view, 0.0);
+        GMatUV[launchID] = float4(float(mat_idx), testUV.x, testUV.y, 0.0);
+        float2 currentUV = (float2(launchID) + 0.5) / float2(launchSize);
+        float2 prevUV = WorldToScreenUV(x_view, uniformBufferObject.viewPrev, uniformBufferObject.projectionPrev);
+        GMotionVector[launchID] = currentUV - prevUV;
+    }
+    else
+    {
+        GBufferPos[launchID] = float4(0, 0, 0, 0.0);
+        GNormal[launchID] = 0;
+        GMatUV[launchID] = float4(-1, 0, 0, 0);
+        GMotionVector[launchID] = 0;
+        samples[pixelIndex].L_out = float3(0, 0, 0);
+        samples[pixelIndex].n_sample = float3(0, 0, 0);
+        //samples[pixelIndex].p_q = 0;
+    }
+    
+    float3 wi_ = normalize(x_sample - x_view);
+    float3 wo_ = normalize(mul(uniformBufferObject.modelViewInverse, float4(0, 0, 0, 1)).xyz - x_view);
+    float3 n_ = normalize(n_view);
+    float3 final = float3(0, 0, 0);
+    float cos_theta_ = 0;
+    float3 tempf = 0;
+    if (primitiveHitValid)
+    {
+        tempf = EvaluateBSDF(n_, testUV, Materials[mat_idx], cos_theta_, wo_, wi_, testPDF);
+        final = testPDF > 0 ? tempf * L_out * cos_theta_ / testPDF : tempf;
+    }
+    else
+    {
+        final = L_out;
+        AccumulationImage[launchID] = float4(final, 0);
+    }
+    OutputImage[launchID] = float4(final, 0);
 }

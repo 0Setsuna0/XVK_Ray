@@ -1,0 +1,1 @@
+RWTexture2D<float4> GPos : register()

@@ -40,8 +40,20 @@ namespace xvk::ray
 		InitReSTIRGITracer();
 
 		m_restirgiPipeline.reset(new XVKReSTIRGIPipeline(*m_deviceFunc, GetSwapChain(), m_tlas[0],
-			*m_restir_accumulatedImageView, *m_restir_outputImageView, GetUniformBuffers(), *m_scene, m_restir_initialSamplesBuffer, m_restir_initialOldSamplesBuffer,
-			m_restir_temporalReservoirBuffer, m_restir_spatialReservoirBuffer));
+			*m_restir_accumulatedImageView, 
+			*m_restir_outputImageView, 
+			GetUniformBuffers(), 
+			*m_scene, 
+			m_restir_initialSamplesBuffer, 
+			m_restir_initialOldSamplesBuffer,
+			m_restir_temporalReservoirBuffer, 
+			m_restir_spatialReservoirBuffer, 
+			*m_restir_GBufferPosView, 
+			*m_restir_GBufferNrmView, 
+			*m_restir_GBufferMatUVView, 
+			*m_restir_GBufferMotionView,
+			*m_restir_GBufferPosPrevView,
+			*m_restir_GBufferNrmPrevView));
 
 		// === Initial Sample Pipeline ===
 		{
@@ -120,6 +132,18 @@ namespace xvk::ray
 		m_restir_outputImage.reset();
 		m_restir_outputImageView.reset();
 		m_restir_outputImageMemory.reset();
+		m_restir_GBufferPos.reset();
+		m_restir_GBufferPosView.reset();
+		m_restir_GBufferPosMemory.reset();
+		m_restir_GBufferNrm.reset();
+		m_restir_GBufferNrmView.reset();
+		m_restir_GBufferNrmMemory.reset();
+		m_restir_GBufferMatUV.reset();
+		m_restir_GBufferMatUVView.reset();
+		m_restir_GBufferMatUVMemory.reset();
+		m_restir_GBufferMotion.reset();
+		m_restir_GBufferMotionView.reset();
+		m_restir_GBufferMotionMemory.reset();
 		ApplicationRT::DeleteSwapChain();
 	}
 
@@ -158,7 +182,7 @@ namespace xvk::ray
 			VkMemoryBarrier barrier{};
 			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
 			barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 
 			vkCmdPipelineBarrier(commandBuffer,
 				VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
@@ -182,8 +206,8 @@ namespace xvk::ray
 			VkMemoryBarrier barrier{};
 			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
 			barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
 			vkCmdPipelineBarrier(commandBuffer,
 				VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
 				VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
@@ -214,7 +238,7 @@ namespace xvk::ray
 		//		0, 1, &barrier, 0, nullptr, 0, nullptr);
 		//}
 
-		//// === Output Image Resolve (Compute) ===
+		// === Output Image Resolve (Compute) ===
 		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
 		//	m_restirgiPipeline->OutputHandle());
 		//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -239,12 +263,15 @@ namespace xvk::ray
 
 		vkCmdCopyImage(commandBuffer,
 			m_restir_outputImage->Handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-			GetSwapChain().GetImages()[currentFrame], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			GetSwapChain().GetImages()[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &copyRegion);
 
 		XVKImage::Insert(commandBuffer, GetSwapChain().GetImages()[imageIndex], subresourceRange,
 			VK_ACCESS_TRANSFER_WRITE_BIT, 0,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+		VkBufferCopy bufferCopyRegion = {};
+		bufferCopyRegion.size = GetSwapChain().GetExtent().width * GetSwapChain().GetExtent().height * sizeof(ReSTIRGISample);
+		vkCmdCopyBuffer(commandBuffer, m_restir_initialSamplesBuffer->Handle(), m_restir_initialOldSamplesBuffer->Handle(), 1, &bufferCopyRegion);
 	}
 
 	std::vector<VkStridedDeviceAddressRegionKHR> ApplicationReSTIRGI::GetShaderBindingTableRegions(
@@ -281,6 +308,7 @@ namespace xvk::ray
 			GetSwapChain().GetExtent().width * GetSwapChain().GetExtent().height * sizeof(ReSTIRGISample), 
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT));
+		static_assert(sizeof(ReSTIRGISample) == 96);
 		m_restir_initialSamplesBufferMemory.reset(new XVKDeviceMemory(m_restir_initialSamplesBuffer->AllocateMemory(
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 
@@ -292,14 +320,15 @@ namespace xvk::ray
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 
 		m_restir_temporalReservoirBuffer.reset(new XVKBuffer(GetDevice(), 
-			GetSwapChain().GetExtent().width * GetSwapChain().GetExtent().height * sizeof(ReSTIRGIReservoir),
+			2 * GetSwapChain().GetExtent().width * GetSwapChain().GetExtent().height * sizeof(ReSTIRGIReservoir),
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+		static_assert(sizeof(ReSTIRGIReservoir) == 112);
 		m_restir_temporalReservoirBufferMemory.reset(new XVKDeviceMemory(m_restir_temporalReservoirBuffer->AllocateMemory(
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT)));
 	
 		m_restir_spatialReservoirBuffer.reset(new XVKBuffer(GetDevice(),
-			GetSwapChain().GetExtent().width * GetSwapChain().GetExtent().height * sizeof(ReSTIRGIReservoir),
+			2 * GetSwapChain().GetExtent().width * GetSwapChain().GetExtent().height * sizeof(ReSTIRGIReservoir),
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT));
 		m_restir_spatialReservoirBufferMemory.reset(new XVKDeviceMemory(m_restir_spatialReservoirBuffer->AllocateMemory(
@@ -316,5 +345,31 @@ namespace xvk::ray
 		m_restir_outputImage.reset(new XVKImage(GetDevice(), extent, format, tiling, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT));
 		m_restir_outputImageMemory.reset(new XVKDeviceMemory(m_restir_outputImage->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
 		m_restir_outputImageView.reset(new XVKImageView(GetDevice(), m_restir_outputImage->Handle(), format, VK_IMAGE_ASPECT_COLOR_BIT));
+
+		//initalize gbuffer
+		// Position
+		m_restir_GBufferPos.reset(new XVKImage(GetDevice(), extent, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_STORAGE_BIT));
+		m_restir_GBufferPosMemory.reset(new XVKDeviceMemory(m_restir_GBufferPos->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_restir_GBufferPosView.reset(new XVKImageView(GetDevice(), m_restir_GBufferPos->Handle(), VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT));
+		// Normal
+		m_restir_GBufferNrm.reset(new XVKImage(GetDevice(), extent, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_STORAGE_BIT));
+		m_restir_GBufferNrmMemory.reset(new XVKDeviceMemory(m_restir_GBufferNrm->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_restir_GBufferNrmView.reset(new XVKImageView(GetDevice(), m_restir_GBufferNrm->Handle(), VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT));
+		// Material ID & UV (Fat G-Buffer)
+		m_restir_GBufferMatUV.reset(new XVKImage(GetDevice(), extent, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_STORAGE_BIT));
+		m_restir_GBufferMatUVMemory.reset(new XVKDeviceMemory(m_restir_GBufferMatUV->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_restir_GBufferMatUVView.reset(new XVKImageView(GetDevice(), m_restir_GBufferMatUV->Handle(), VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT));
+		// Motion Vector (RG16F×ã¹»)
+		m_restir_GBufferMotion.reset(new XVKImage(GetDevice(), extent, VK_FORMAT_R16G16_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_STORAGE_BIT));
+		m_restir_GBufferMotionMemory.reset(new XVKDeviceMemory(m_restir_GBufferMotion->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_restir_GBufferMotionView.reset(new XVKImageView(GetDevice(), m_restir_GBufferMotion->Handle(), VK_FORMAT_R16G16_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT));
+		// prev pos and nrm
+		m_restir_GBufferPosPrev.reset(new XVKImage(GetDevice(), extent, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_STORAGE_BIT));
+		m_restir_GBufferPosPrevMemory.reset(new XVKDeviceMemory(m_restir_GBufferPos->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_restir_GBufferPosPrevView.reset(new XVKImageView(GetDevice(), m_restir_GBufferPos->Handle(), VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT));
+		m_restir_GBufferNrmPrev.reset(new XVKImage(GetDevice(), extent, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_STORAGE_BIT));
+		m_restir_GBufferNrmPrevMemory.reset(new XVKDeviceMemory(m_restir_GBufferNrm->AllocateMemory(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)));
+		m_restir_GBufferNrmPrevView.reset(new XVKImageView(GetDevice(), m_restir_GBufferNrm->Handle(), VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT));
+
 	}
 }

@@ -54,7 +54,7 @@ int main()
 		PathTracer app(userSettings, windowState, VK_PRESENT_MODE_MAILBOX_KHR);
 
 		vkAsset::AglTFModel model;
-		model.loadglTFFile(ASSET_DIR"model/classroom/scene.gltf");
+		model.loadglTFFile(ASSET_DIR"model/sb2/scene.gltf");
 		vkAsset::AglTFModel model1;
 		model1.loadglTFFile(ASSET_DIR"model/cb2/scene.gltf");
 		vkAsset::AglTFModel model2;

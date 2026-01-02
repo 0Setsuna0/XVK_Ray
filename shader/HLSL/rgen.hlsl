@@ -34,24 +34,16 @@ void main()
     const uint2 launchID = GetLaunchID();
     const uint2 launchSize = GetLaunchSize();
     
-    // 获取帧随机种子
-    uint frameSeed = uniformBufferObject.currentFrame;
-    
-    // 初始化局部随机种子 (混合 像素坐标 + 帧索引)
-    uint2 seed = uint2(
-        InitRandomSeed(launchID.x, launchID.y) + frameSeed,
-        InitRandomSeed(launchID.y, launchID.x)
-    );
+    uint rngState = InitRandomSeed(launchID, launchSize, uniformBufferObject.currentFrame);
 
     float3 pixelColor = 0;
     
     // multiple sampling process
-    for (uint i = 0; i <= uniformBufferObject.spp; i++)
+    for (uint i = 0; i < uniformBufferObject.spp; i++)
     {
-        // 1. 修正抗锯齿逻辑：使用局部 seed.x，而不是全局 pixelRandomSeed
         float2 pixelOffset = float2(
-            RandomFloat(seed.x),
-            RandomFloat(seed.y));
+            RandomFloat(rngState),
+            RandomFloat(rngState));
             
         float2 pixel = (float2) launchID + pixelOffset;
         float2 uv = (pixel / (float2) launchSize) * 2.0 - 1.0;
@@ -68,14 +60,13 @@ void main()
         {
             RayDesc ray;
             ray.Origin = origin.xyz;
-            ray.Direction = direction; // 现在类型匹配了 (float3)
+            ray.Direction = direction;
             ray.TMin = 0.0001f;
             ray.TMax = 10000.0f;
 
             RayPayload rayPayload;
             rayPayload.MaterialIndex = -1;
             
-            // 3. 显式初始化 Payload 所有成员 (防止 Validation Error)
             rayPayload.Position = float3(0, 0, 0);
             rayPayload.Normal = float3(0, 0, 0);
             rayPayload.UV = float2(0, 0);
@@ -90,8 +81,7 @@ void main()
                 0,
                 ray,
                 rayPayload);
-            
-            // 命中判断
+
             if (rayPayload.MaterialIndex == -1)
             {
                 float t = 0.5 * (direction.y + 1.0);
@@ -102,11 +92,9 @@ void main()
             }
             
             Material mat = Materials[rayPayload.MaterialIndex];
-            
-            // 简单自发光处理
+
             if (mat.materialModel == MaterialDiffuseLight)
             {
-                 // 假设强度为 1.0，根据需要调整
                 rayColor += throughput * mat.baseColor.rgb * 4.0;
                 break;
             }
@@ -118,7 +106,7 @@ void main()
             
             // BSDF 采样
             float3 f = SampleBSDF(rayPayload.Normal, rayPayload.UV, mat, wo,
-                true, wi, pdf, cos_theta, seed);
+                true, wi, pdf, cos_theta, rngState);
 
             if (pdf <= 1e-6)
                 break;
@@ -130,17 +118,16 @@ void main()
             if (bounce > 3)
             {
                 float p = max(throughput.r, max(throughput.g, throughput.b));
-                if (RandomFloat(seed.x) > p)
+                if (RandomFloat(rngState) > p)
                     break;
                 throughput *= 1.0 / p;
             }
 
-            // 更新下一跳
+
             float3 hitPosition = ray.Origin + ray.Direction * rayPayload.HitT;
 
-            // 更新下一跳 Origin
             float3 offsetDir = dot(wi, rayPayload.Normal) > 0 ? rayPayload.Normal : -rayPayload.Normal;
-            origin.xyz = hitPosition + offsetDir * 0.001f; // 这里的偏移量依然重要
+            origin.xyz = hitPosition + offsetDir * 0.001f; 
 
             direction = wi;
         }
@@ -148,7 +135,7 @@ void main()
         pixelColor += rayColor;
     }
 
-    // 累积逻辑
+
     bool accumulate = uniformBufferObject.spp != uniformBufferObject.totalNumberOfSamples;
     float3 accumulatedColor = accumulate ?
         AccumulationImage[launchID].rgb :
@@ -156,8 +143,8 @@ void main()
     accumulatedColor += pixelColor;
 
     float3 finalColor = accumulatedColor / uniformBufferObject.totalNumberOfSamples;
-    finalColor = sqrt(finalColor);
     finalColor = ACESFilm(finalColor);
+    finalColor = pow(finalColor, 1.0 / 2.2);
 
     AccumulationImage[launchID] = float4(accumulatedColor, 0);
     OutputImage[launchID] = float4(finalColor, 0);

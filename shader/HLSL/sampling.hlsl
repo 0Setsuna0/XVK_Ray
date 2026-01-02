@@ -43,10 +43,10 @@ float3 SampleHemisphere(float2 xi)
     );
 }
 
-float3 SampleLambertian(Material mat, float3 wo, out float3 wi, out float pdf, out float cos_theta,
-    float3 n, float2 uv, inout uint2 seed)
+float3 SampleLambertian(Material mat, float3 wo, out float3 wi, inout float pdf, out float cos_theta,
+    float3 n, float2 uv, inout uint seed)
 {
-    float2 xi = float2(RandomFloat(seed.x), RandomFloat(seed.x));
+    float2 xi = float2(RandomFloat(seed), RandomFloat(seed));
     wi = SampleHemisphere(xi);
     
     cos_theta = wi.z;
@@ -71,7 +71,7 @@ float3 SampleDiffuseLight(Material mat, float2 uv)
 }
 
 float3 SampleBSDF(float3 n, float2 uv, const Material mat, float3 wo_world, const bool forward_facing,
-    out float3 wi_world, out float pdf_w, out float cos_theta, inout uint2 seed)
+    out float3 wi_world, inout float pdf_w, inout float cos_theta, inout uint seed)
 {
     float3 f = 0;
     pdf_w = 0;

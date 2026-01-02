@@ -1,19 +1,17 @@
+#ifndef RAY_PAYLOAD_H
+#define RAY_PAYLOAD_H
+
 struct [raypayload] RayPayload
 {
-    uint RandomSeed; 
-    float3 Position;
-    float3 Normal;
-	float2 UV;
-	uint MaterialIndex;
-	uint TriangleIndex;
-	uint InstanceIndex;
-	float Area;
-	float Distance;
-	uint HitKind;
-    float4 SkyColor;
+    float3 Position : read(caller) : write(caller, closesthit);
+    float3 Normal : read(caller) : write(caller, closesthit);
+    float3 GeometryNormal : read(caller) : write(caller, closesthit);
+    float2 UV : read(caller) : write(caller, closesthit);
+    int MaterialIndex : read(caller) : write(caller, closesthit, miss);
+    float HitT : read(caller) : write(caller, closesthit, miss);
 };
-
 struct [raypayload] AnyHitPayload
 {
 	int hit;
 };	
+#endif
