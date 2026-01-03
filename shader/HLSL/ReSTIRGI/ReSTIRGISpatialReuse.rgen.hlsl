@@ -1,8 +1,8 @@
 ﻿#include "BSDF.hlsl"
 #include "UBO.hlsl"
 #include "RayPayload.hlsl"
-#define NUM_SPATIAL_SAMPLES 9
-#define SPATIAL_RADIUS 10.0
+#define NUM_SPATIAL_SAMPLES 6
+#define SPATIAL_RADIUS 5.0
 #define M_MAX 300
 RaytracingAccelerationStructure scene : register(t0);
 RWStructuredBuffer<ReSTIRGISample> samples : register(u9);
@@ -158,16 +158,17 @@ void main()
     float3 finalColor = float3(0, 0, 0);
     if (r_s.W > 0)
     {
-        float3 x_curr = r_s.s.x_view;
-        float3 n_curr = normalize(r_s.s.n_view);
-        float3 x_sample = r_s.s.x_sample;
-           
-        float3 wi = normalize(x_sample - x_curr);
-        float3 camPos = mul(uniformBufferObject.modelViewInverse, float4(0, 0, 0, 1)).xyz;
-        float3 wo = normalize(camPos - x_curr);
+        float3 x_curr = s_new.x_view;
+        float3 n_curr = s_new.n_view;
+    
+        float3 x_sample_ = r_s.s.x_sample;
+    
+        float3 wi = normalize(x_sample_ - x_curr);
 
-        float cos_theta = max(0.0, dot(n_curr, wi));
-                
+        float pdf_val = 0.0;
+        float cos_theta = 0.0;
+        cos_theta = max(0.0, dot(n_curr, wi));
+    
         finalColor = r_s.s.L_out * r_s.W * r_s.s.f * cos_theta;
     }
     
@@ -175,5 +176,8 @@ void main()
     finalColor = pow(finalColor, 1.0 / 2.2);
     
     spatial_reservoirs[writeOffset + pixelIndex] = r_s;
-    OutputImage[launchID] = float4(finalColor, 1.0);
+    if(uniformBufferObject.reuse)
+    {
+        OutputImage[launchID] = float4(finalColor, 1.0);
+    }
 }

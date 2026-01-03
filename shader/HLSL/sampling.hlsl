@@ -87,6 +87,8 @@ float3 SampleBSDF(float3 n, float2 uv, const Material mat, float3 wo_world, cons
         case MaterialLambertian:
             f = SampleLambertian(mat, wo_local, wi_local, pdf_w, cos_theta, n, uv, seed);
             break;
+        case MaterialDiffuseLight:
+            f = SampleDiffuseLight(mat, uv);
         default:
             break;
     }

@@ -164,7 +164,6 @@ void main()
             throughput *= f * cos_theta / pdf;
         }
 
-
         if (bounce > 3)
         {
             float p = max(throughput.r, max(throughput.g, throughput.b));
@@ -173,11 +172,10 @@ void main()
             throughput *= 1.0 / p;
         }
 
-
         float3 hitPosition = ray.Origin + ray.Direction * rayPayload.HitT;
-
-        float3 offsetDir = dot(wi, rayPayload.Normal) > 0 ? rayPayload.Normal : -rayPayload.Normal;
-        origin.xyz = hitPosition + offsetDir * 0.001f;
+        float3 geoNormal = rayPayload.GeometryNormal;
+        float3 offsetDir = dot(wi, geoNormal) > 0 ? geoNormal : -geoNormal;
+        origin.xyz = hitPosition + offsetDir * 0.01f;
 
         direction = wi;
     }
@@ -212,24 +210,5 @@ void main()
         GMotionVector[launchID] = 0;
         samples[pixelIndex].L_out = float3(0, 0, 0);
         samples[pixelIndex].n_sample = float3(0, 0, 0);
-        //samples[pixelIndex].p_q = 0;
     }
-    
-    float3 wi_ = normalize(x_sample - x_view);
-    float3 wo_ = normalize(mul(uniformBufferObject.modelViewInverse, float4(0, 0, 0, 1)).xyz - x_view);
-    float3 n_ = normalize(n_view);
-    float3 final = float3(0, 0, 0);
-    float cos_theta_ = 0;
-    float3 tempf = 0;
-    if (primitiveHitValid)
-    {
-        tempf = EvaluateBSDF(n_, testUV, Materials[mat_idx], cos_theta_, wo_, wi_, testPDF);
-        final = testPDF > 0 ? tempf * L_out * cos_theta_ / testPDF : tempf;
-    }
-    else
-    {
-        final = L_out;
-        AccumulationImage[launchID] = float4(final, 0);
-    }
-    OutputImage[launchID] = float4(final, 0);
 }

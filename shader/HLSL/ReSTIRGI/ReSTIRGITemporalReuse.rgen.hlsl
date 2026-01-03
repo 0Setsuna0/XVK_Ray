@@ -30,7 +30,14 @@ uint2 GetLaunchSize()
 {
     return DispatchRaysDimensions().xy;
 }
-
+float EvaluateTargetFunction(ReSTIRGISample s, float3 x_curr, float3 n_curr)
+{
+    float3 wi = normalize(s.x_sample - x_curr);
+    float cos_theta = dot(n_curr, wi);
+    if (cos_theta <= 0.0)
+        return 0.0;
+    return length(s.L_out);
+}
 [shader("raygeneration")]
 void main()
 {
@@ -63,12 +70,6 @@ void main()
     float2 uv = (float2(launchID) + 0.5) / float2(launchSize);
     float2 prevUV = uv - motion;
     int2 prevCoord = int2(prevUV * float2(launchSize));
-
-    //float4 viewPos = mul(uniformBufferObject.viewPrev, float4(s_new.x_view, 1.0));
-    //float4 clipPos = mul(uniformBufferObject.projectionPrev, viewPos);
-    //float3 ndc = clipPos.xyz / clipPos.w;
-    //prevUV = ndc.xy * 0.5 + 0.5;
-    //prevCoord = int2(prevUV * float2(launchSize));
     
     if (prevCoord.x >= 0 && prevCoord.x < launchSize.x &&
         prevCoord.y >= 0 && prevCoord.y < launchSize.y)
@@ -78,7 +79,7 @@ void main()
         uint prevPixelIndex = prevCoord.y * launchSize.x + prevCoord.x;
         ReSTIRGISample s_old = oldsamples[prevPixelIndex];
             
-        if (prevPosData.w != 0 /*&& IsSimilar(s_new.x_view, s_new.n_view, prevPosData.xyz, prevNorm)*/)
+        if (prevPosData.w != 0)
         {
             r_prev = temporal_reservoirs[prevOffset + prevPixelIndex];
             foundTemporal = true;
@@ -90,54 +91,58 @@ void main()
         }
     }
     
-    InitReservoir(r_new);
-    float phat_new = p_hat(s_new.L_out);
-    float w_new = phat_new / s_new.p_q;
-    UpdateReservoir(r_new, s_new, w_new, rngState);
-    r_new.W = (phat_new > 0) ? r_new.w_sum / (r_new.m * phat_new) : 0;
+    float3 x_curr = s_new.x_view;
+    float3 n_curr = normalize(s_new.n_view);
 
     ReSTIRGIReservoir r_final;
-    r_final.w_sum = 0;
-    r_final.W = 0;
-    r_final.m = 0;
-    // Combine new
-    UpdateReservoir(r_final, r_new.s, r_new.m * r_new.W * phat_new, rngState);
-    // Combine previous
-    UpdateReservoir(r_final, r_prev.s, r_prev.m * r_prev.W * p_hat(r_prev.s.L_out), rngState);
-    uint mval = r_prev.m;
-    float new_phat = p_hat(r_final.s.L_out);
-    if (new_phat > 0)
+    InitReservoir(r_final);
+    // add new sample
+    float target_p_new = EvaluateTargetFunction(s_new, x_curr, n_curr);
+    float w_new = (s_new.p_q > 1e-6) ? (target_p_new / s_new.p_q) : 0.0;
+    UpdateReservoir(r_final, s_new, w_new, rngState);
+    // add temporial sample
+    if (foundTemporal)
     {
-        mval++;
+        float target_p_prev = EvaluateTargetFunction(r_prev.s, x_curr, n_curr);
+        MergeReservoir(r_final, r_prev, target_p_prev, rngState);
     }
-    r_final.m = min(r_prev.m + 1, M_MAX);
-    r_final.W = new_phat * mval == 0 ? 0 : r_final.w_sum / (mval * new_phat);
-    //r_final = r_new;
-    //phat_new = p_hat(s_new.L_out);
-    //w_new = phat_new / s_new.p_q;
-    //UpdateReservoir(r_prev, s_new, w_new, rngState);
-    //if (r_prev.m > M_MAX)
-    //{
-    //    r_prev.w_sum *= (float) M_MAX / (float) r_prev.m;
-    //    r_prev.m = M_MAX;
-    //}
-    //r_prev.W = (p_hat(r_prev.s.L_out) * r_prev.m == 0) ? 0 : r_prev.w_sum / (r_prev.m * p_hat(r_prev.s.L_out));
-    //r_final = r_prev;
+    else
+    {
+        r_final.m = 1;
+    }
     
+    if (r_final.m > M_MAX)
+    {
+        r_final.w_sum *= (float) M_MAX / (float) r_final.m;
+        r_final.m = M_MAX;
+    }
+        
+    float target_p_final = EvaluateTargetFunction(r_final.s, x_curr, n_curr);
+    
+    if (target_p_final > 1e-6 && r_final.m > 0)
+    {
+        r_final.W = r_final.w_sum / (float(r_final.m) * target_p_final);
+    }
+    else
+    {
+        r_final.W = 0.0;
+    }
+
     temporal_reservoirs[currentOffset + pixelIndex] = r_final;
     
     float3 finalColor = float3(0, 0, 0);
     if (r_final.W > 0)
     {
-        float3 x_view_ = r_final.s.x_view;
-        float3 n_view_ = r_final.s.n_view;
+        float3 x_curr = s_new.x_view;
+        float3 n_curr = s_new.n_view;
         float3 x_sample_ = r_final.s.x_sample;
-        float3 wi = normalize(x_sample_ - x_view_);
+
+        float3 wi = normalize(x_sample_ - x_curr);
 
         float pdf_val = 0.0;
         float cos_theta = 0.0;
-       
-        cos_theta = max(0.0, dot(n_view_, wi));
+        cos_theta = max(0.0, dot(n_curr, wi));
+    
         finalColor = r_final.s.L_out * r_final.W * r_final.s.f * cos_theta;
     }
     finalColor = ACESFilm(finalColor);
